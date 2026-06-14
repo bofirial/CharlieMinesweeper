@@ -282,6 +282,7 @@ export const Minesweeper: React.FC = () => {
       <div className="game-instructions">
         💡 <span>Left-Click</span> to reveal tiles. <span>Right-Click</span> to place flags.<br />
         <span>Double-Click</span> or <span>Middle-Click</span> a revealed number to Chord.<br />
+        📱 <span>Tap</span> to reveal. <span>Long-Press</span> to flag. <span>Double-Tap</span> a revealed number to Chord.<br />
         🔴 <span>Red Paint</span> flags adjacent mines. 🔵 <span>Blue Paint</span> reveals adjacent 1s. 🟢 <span>Green Paint</span> reveals adjacent 2s (none reveals/flags the clicked tile itself).
       </div>
     </div>

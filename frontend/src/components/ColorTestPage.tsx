@@ -1,0 +1,165 @@
+import React from 'react';
+import { Cell } from './Cell';
+import type { Cell as CellType } from '../types';
+
+export const ColorTestPage: React.FC = () => {
+  // Construct a mock board to showcase all numbers (1-8), mines, flags, and states
+  const mockBoard: CellType[][] = [
+    // Row 0: Numbers 1 to 8 and an exploded mine
+    [
+      { row: 0, col: 0, isMine: false, isRevealed: true, isFlagged: false, neighborMines: 1 },
+      { row: 0, col: 1, isMine: false, isRevealed: true, isFlagged: false, neighborMines: 2 },
+      { row: 0, col: 2, isMine: false, isRevealed: true, isFlagged: false, neighborMines: 3 },
+      { row: 0, col: 3, isMine: false, isRevealed: true, isFlagged: false, neighborMines: 4 },
+      { row: 0, col: 4, isMine: false, isRevealed: true, isFlagged: false, neighborMines: 5 },
+      { row: 0, col: 5, isMine: false, isRevealed: true, isFlagged: false, neighborMines: 6 },
+      { row: 0, col: 6, isMine: false, isRevealed: true, isFlagged: false, neighborMines: 7 },
+      { row: 0, col: 7, isMine: false, isRevealed: true, isFlagged: false, neighborMines: 8 },
+      { row: 0, col: 8, isMine: true, isRevealed: true, isFlagged: false, neighborMines: 0, isExploded: true },
+    ],
+    // Row 1: Flagged, unrevealed, standard mine, and various neighboring tiles
+    [
+      { row: 1, col: 0, isMine: false, isRevealed: false, isFlagged: true, neighborMines: 0 },
+      { row: 1, col: 1, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 1, col: 2, isMine: true, isRevealed: true, isFlagged: false, neighborMines: 0 },
+      { row: 1, col: 3, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 1, col: 4, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 1, col: 5, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 1, col: 6, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 1, col: 7, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 1, col: 8, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+    ],
+    // Row 2: Standard unrevealed layout
+    [
+      { row: 2, col: 0, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 2, col: 1, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 2, col: 2, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 2, col: 3, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 2, col: 4, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 2, col: 5, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 2, col: 6, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 2, col: 7, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+      { row: 2, col: 8, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0 },
+    ]
+  ];
+
+  const goBack = () => {
+    window.history.pushState(null, '', '/');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  const paletteColors = [
+    { label: 'Number 1', hex: '#60a5fa', desc: 'Blue' },
+    { label: 'Number 2', hex: '#34d399', desc: 'Emerald' },
+    { label: 'Number 3', hex: '#fb7185', desc: 'Coral' },
+    { label: 'Number 4', hex: '#c084fc', desc: 'Purple' },
+    { label: 'Number 5', hex: '#f97316', desc: 'Orange' },
+    { label: 'Number 6', hex: '#ffffff', desc: 'White' },
+    { label: 'Number 7', hex: '#b45309', desc: 'Brown' },
+    { label: 'Number 8', hex: 'linear-gradient(135deg, #60a5fa, #34d399, #fb7185, #c084fc, #f97316, #ffffff, #b45309, #f472b6)', desc: 'Rainbow', isRainbow: true },
+    { label: 'Mine', hex: '#f43f5e', desc: 'Rose (Explosion)' },
+    { label: 'Flag', hex: '#ef4444', desc: 'Red' },
+  ];
+
+  return (
+    <div className="app-container color-test-container">
+      <div className="title-container">
+        <h1 className="app-title">Color Verification</h1>
+        <div className="app-subtitle" style={{ color: '#ef4444', fontWeight: 'bold' }}>
+          ⚠️ LOCAL DEVELOPMENT ONLY
+        </div>
+      </div>
+
+      <div className="tools-container">
+        <button className="tool-btn" onClick={goBack}>
+          ← Back to Game
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}>
+        {/* Mock Cabinet */}
+        <div className="game-cabinet playing">
+          <div className="game-header">
+            <div className="display-panel" title="Mines Remaining">
+              <div className="display-value">009</div>
+            </div>
+            <button className="face-button" title="Test Board" disabled>
+              <span className="face-emoji">🧐</span>
+            </button>
+            <div className="display-panel" title="Time Elapsed">
+              <div className="display-value">042</div>
+            </div>
+          </div>
+
+          <div className="board-grid-wrapper">
+            <div
+              className="board-grid"
+              style={{
+                gridTemplateColumns: 'repeat(9, 32px)',
+              }}
+            >
+              {mockBoard.map((row) =>
+                row.map((cell) => (
+                  <Cell
+                    key={`test-${cell.row}-${cell.col}`}
+                    cell={cell}
+                    onClick={() => {}}
+                    onFlag={() => {}}
+                    onChord={() => {}}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Color Palette Cards */}
+        <div 
+          className="game-cabinet" 
+          style={{ 
+            minWidth: '300px', 
+            alignItems: 'stretch', 
+            padding: '1.5rem',
+            background: 'rgba(15, 23, 42, 0.85)'
+          }}
+        >
+          <h3 style={{ margin: '0 0 1rem 0', textAlign: 'center', fontSize: '1.2rem', color: '#a5b4fc' }}>
+            Palette Guide
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {paletteColors.map((color) => (
+              <div 
+                key={color.label} 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  padding: '0.4rem 0.75rem',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.05)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div 
+                    style={{ 
+                      width: '16px', 
+                      height: '16px', 
+                      borderRadius: '4px', 
+                      background: color.hex,
+                      boxShadow: color.isRainbow ? '0 0 8px rgba(255, 255, 255, 0.5)' : `0 0 8px ${color.hex}`
+                    }}
+                  />
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{color.label}</span>
+                </div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: '#64748b' }}>
+                  {color.isRainbow ? 'Rainbow' : color.hex}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

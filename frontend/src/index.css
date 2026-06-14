@@ -489,11 +489,11 @@ body {
   cursor: crosshair;
 }
 
-.board-grid.paint-mode-active .cell.unrevealed:hover {
-  background: rgba(244, 63, 94, 0.25) !important;
+.cell.unrevealed.paint-highlighted {
+  background: rgba(244, 63, 94, 0.3) !important;
   border-color: #f43f5e !important;
   box-shadow: 0 0 12px rgba(244, 63, 94, 0.7), inset 0 2px 4px rgba(255, 255, 255, 0.2) !important;
-  transform: scale(1.12);
+  transform: scale(1.08);
   z-index: 10;
 }
 

@@ -20,6 +20,7 @@ export const Minesweeper: React.FC = () => {
 
   const [isGridMouseDown, setIsGridMouseDown] = useState(false);
   const [isPaintModeActive, setIsPaintModeActive] = useState(false);
+  const [hoveredCell, setHoveredCell] = useState<{ r: number; c: number } | null>(null);
 
   // Helper to pad numbers to 3 digits (e.g. 008, 099, -05)
   const formatNumber = (num: number): string => {
@@ -46,6 +47,7 @@ export const Minesweeper: React.FC = () => {
 
   const handleDifficultyChange = (difficulty: Exclude<GameConfig['name'], 'Custom'>) => {
     setIsPaintModeActive(false);
+    setHoveredCell(null);
     resetGame(DIFFICULTIES[difficulty]);
   };
 
@@ -53,9 +55,18 @@ export const Minesweeper: React.FC = () => {
     if (isPaintModeActive) {
       paintFlags(row, col);
       setIsPaintModeActive(false);
+      setHoveredCell(null);
     } else {
       revealCell(row, col);
     }
+  };
+
+  const isCellHighlighted = (r: number, c: number): boolean => {
+    if (!isPaintModeActive || !hoveredCell) return false;
+    const { r: hr, c: hc } = hoveredCell;
+    const isNeighbor = Math.abs(r - hr) <= 1 && Math.abs(c - hc) <= 1;
+    const isSelf = r === hr && c === hc;
+    return isNeighbor && !isSelf;
   };
 
   return (
@@ -118,6 +129,7 @@ export const Minesweeper: React.FC = () => {
             className="face-button"
             onClick={() => {
               setIsPaintModeActive(false);
+              setHoveredCell(null);
               resetGame();
             }}
             title="Reset Game"
@@ -142,7 +154,10 @@ export const Minesweeper: React.FC = () => {
             }}
             onMouseDown={() => setIsGridMouseDown(true)}
             onMouseUp={() => setIsGridMouseDown(false)}
-            onMouseLeave={() => setIsGridMouseDown(false)}
+            onMouseLeave={() => {
+              setIsGridMouseDown(false);
+              setHoveredCell(null);
+            }}
           >
             {board.map((row, rowIndex) =>
               row.map((cell, colIndex) => (
@@ -152,6 +167,9 @@ export const Minesweeper: React.FC = () => {
                   onClick={() => handleCellClick(rowIndex, colIndex)}
                   onFlag={() => toggleFlag(rowIndex, colIndex)}
                   onChord={() => chordCell(rowIndex, colIndex)}
+                  isPaintHighlighted={isCellHighlighted(rowIndex, colIndex)}
+                  onMouseEnter={() => isPaintModeActive && setHoveredCell({ r: rowIndex, c: colIndex })}
+                  onMouseLeave={() => isPaintModeActive && setHoveredCell(null)}
                 />
               ))
             )}

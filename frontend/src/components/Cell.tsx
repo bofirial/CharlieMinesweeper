@@ -6,6 +6,9 @@ interface CellProps {
   onClick: () => void;
   onFlag: () => void;
   onChord: () => void;
+  isPaintHighlighted?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 export const Cell: React.FC<CellProps> = React.memo(({
@@ -13,6 +16,9 @@ export const Cell: React.FC<CellProps> = React.memo(({
   onClick,
   onFlag,
   onChord,
+  isPaintHighlighted = false,
+  onMouseEnter,
+  onMouseLeave,
 }) => {
   const { isMine, isRevealed, isFlagged, neighborMines } = cell;
 
@@ -57,6 +63,9 @@ export const Cell: React.FC<CellProps> = React.memo(({
       cellClass += ' flagged';
       content = <span className="flag-icon">🚩</span>;
     }
+    if (isPaintHighlighted) {
+      cellClass += ' paint-highlighted';
+    }
   }
 
   // If the cell is a mine and revealed, and it's game over,
@@ -74,6 +83,8 @@ export const Cell: React.FC<CellProps> = React.memo(({
       onContextMenu={handleContextMenu}
       onDoubleClick={handleDoubleClick}
       onMouseDown={handleMouseDown}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {content}
     </div>

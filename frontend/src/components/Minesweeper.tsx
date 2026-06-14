@@ -90,7 +90,6 @@ export const Minesweeper: React.FC = () => {
     <div className="app-container">
       <div className="title-container">
         <h1 className="app-title">Minesweeper</h1>
-        <div className="app-subtitle">React + TypeScript + .NET 8</div>
       </div>
 
       <div className="controls-container">

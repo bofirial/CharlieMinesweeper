@@ -1,6 +1,6 @@
 import React from 'react';
 import { Cell } from './Cell';
-import type { Cell as CellType } from '../types';
+import { DIFFICULTIES, type Cell as CellType } from '../types';
 
 export const ColorTestPage: React.FC = () => {
   // Construct a mock board to showcase all numbers (1-8), mines, flags, and states
@@ -155,6 +155,58 @@ export const ColorTestPage: React.FC = () => {
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: '#64748b' }}>
                   {color.isRainbow ? 'Rainbow' : color.hex}
                 </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Difficulty Settings Guide */}
+        <div 
+          className="game-cabinet" 
+          style={{ 
+            minWidth: '350px', 
+            alignItems: 'stretch', 
+            padding: '1.5rem',
+            background: 'rgba(15, 23, 42, 0.85)'
+          }}
+        >
+          <h3 style={{ margin: '0 0 1rem 0', textAlign: 'center', fontSize: '1.2rem', color: '#a5b4fc' }}>
+            Difficulty Settings Guide
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {Object.values(DIFFICULTIES).map((diff) => (
+              <div 
+                key={diff.name} 
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  gap: '0.4rem',
+                  padding: '0.75rem',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.05)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '1rem', fontWeight: 700, color: '#f8fafc' }}>{diff.name}</span>
+                  <span style={{ fontSize: '0.85rem', color: '#94a3b8', background: 'rgba(99, 102, 241, 0.2)', padding: '0.15rem 0.5rem', borderRadius: '6px' }}>
+                    💣 {diff.mines} Mines
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#64748b' }}>
+                  <span>Size: {diff.rows} × {diff.cols} ({diff.rows * diff.cols} squares)</span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.8rem', marginTop: '0.2rem' }}>
+                  <span style={{ color: '#f43f5e', background: 'rgba(244, 63, 94, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                    🔴 Red: {diff.redPaintBuckets}
+                  </span>
+                  <span style={{ color: '#3b82f6', background: 'rgba(59, 130, 246, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                    🔵 Blue: {diff.bluePaintBuckets}
+                  </span>
+                  <span style={{ color: '#22c55e', background: 'rgba(34, 197, 94, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                    🟢 Green: {diff.greenPaintBuckets}
+                  </span>
+                </div>
               </div>
             ))}
           </div>

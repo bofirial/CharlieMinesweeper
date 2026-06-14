@@ -41,6 +41,9 @@ export function useMinesweeper() {
   const [isEasyUnlocked, setIsEasyUnlocked] = useState(() => {
     return localStorage.getItem('minesweeper_easy_unlocked') === 'true';
   });
+  const [hasFailedPeaceful, setHasFailedPeaceful] = useState(() => {
+    return localStorage.getItem('minesweeper_peaceful_failed') === 'true';
+  });
 
   const timerId = useRef<ReturnType<typeof setInterval> | null>(null);
   const isFirstClick = useRef(true);
@@ -216,6 +219,10 @@ export function useMinesweeper() {
       cell.isRevealed = true;
       cell.isExploded = true;
       setGameState('lost');
+      if (config.name === 'Peaceful') {
+        localStorage.setItem('minesweeper_peaceful_failed', 'true');
+        setHasFailedPeaceful(true);
+      }
       
       // Reveal all mines on the board
       for (let r = 0; r < config.rows; r++) {
@@ -235,7 +242,7 @@ export function useMinesweeper() {
     // Check win condition
     if (checkWinCondition(currentBoard)) {
       setGameState('won');
-      if (config.name === 'Peaceful') {
+      if (config.name === 'Peaceful' && !hasFailedPeaceful) {
         localStorage.setItem('minesweeper_easy_unlocked', 'true');
         setIsEasyUnlocked(true);
       }
@@ -259,7 +266,7 @@ export function useMinesweeper() {
     }
 
     setBoard(currentBoard);
-  }, [board, gameState, config, initializeMinesAndNeighbors, checkWinCondition, revealEmptyCells]);
+  }, [board, gameState, config, initializeMinesAndNeighbors, checkWinCondition, revealEmptyCells, hasFailedPeaceful]);
 
   // Right-click handler to toggle flags
   const toggleFlag = useCallback((row: number, col: number) => {
@@ -319,6 +326,10 @@ export function useMinesweeper() {
 
       if (hitMine) {
         setGameState('lost');
+        if (config.name === 'Peaceful') {
+          localStorage.setItem('minesweeper_peaceful_failed', 'true');
+          setHasFailedPeaceful(true);
+        }
         // Reveal all mines
         for (let r = 0; r < config.rows; r++) {
           for (let c = 0; c < config.cols; c++) {
@@ -329,7 +340,7 @@ export function useMinesweeper() {
         }
       } else if (checkWinCondition(currentBoard)) {
         setGameState('won');
-        if (config.name === 'Peaceful') {
+        if (config.name === 'Peaceful' && !hasFailedPeaceful) {
           localStorage.setItem('minesweeper_easy_unlocked', 'true');
           setIsEasyUnlocked(true);
         }
@@ -354,7 +365,7 @@ export function useMinesweeper() {
 
       setBoard(currentBoard);
     }
-  }, [board, gameState, config, getNeighbors, checkWinCondition, revealEmptyCells]);
+  }, [board, gameState, config, getNeighbors, checkWinCondition, revealEmptyCells, hasFailedPeaceful]);
 
   // Paint flags on all unrevealed neighbors of (row, col)
   const paintFlags = useCallback((row: number, col: number) => {
@@ -415,7 +426,7 @@ export function useMinesweeper() {
 
     if (checkWinCondition(currentBoard)) {
       setGameState('won');
-      if (config.name === 'Peaceful') {
+      if (config.name === 'Peaceful' && !hasFailedPeaceful) {
         localStorage.setItem('minesweeper_easy_unlocked', 'true');
         setIsEasyUnlocked(true);
       }
@@ -444,9 +455,25 @@ export function useMinesweeper() {
     } else {
       setGreenPaintBucketsRemaining((p) => p - 1);
     }
-  }, [board, gameState, bluePaintBucketsRemaining, greenPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, checkWinCondition]);
+  }, [board, gameState, bluePaintBucketsRemaining, greenPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, checkWinCondition, hasFailedPeaceful]);
 
 
+
+  const resetUnlocks = useCallback(() => {
+    localStorage.removeItem('minesweeper_easy_unlocked');
+    localStorage.removeItem('minesweeper_pro_unlocked');
+    localStorage.removeItem('minesweeper_impossible_unlocked');
+    localStorage.removeItem('minesweeper_peaceful_failed');
+    setIsEasyUnlocked(false);
+    setIsProUnlocked(false);
+    setIsImpossibleUnlocked(false);
+    setHasFailedPeaceful(false);
+
+    // Reset difficulty if the active one is locked now
+    if (config.name === 'Easy' || config.name === 'Pro' || config.name === 'Impossible') {
+      resetGame(DIFFICULTIES.Peaceful);
+    }
+  }, [config, resetGame]);
 
   return {
     board,
@@ -466,5 +493,6 @@ export function useMinesweeper() {
     isImpossibleUnlocked,
     isProUnlocked,
     isEasyUnlocked,
+    resetUnlocks,
   };
 }

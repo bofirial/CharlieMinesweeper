@@ -22,6 +22,7 @@ export const Minesweeper: React.FC = () => {
     isImpossibleUnlocked,
     isProUnlocked,
     isEasyUnlocked,
+    resetUnlocks,
   } = useMinesweeper();
 
   const [isGridMouseDown, setIsGridMouseDown] = useState(false);
@@ -109,6 +110,13 @@ export const Minesweeper: React.FC = () => {
             </button>
           );
         })}
+        <button
+          className="reset-unlocks-btn"
+          onClick={resetUnlocks}
+          title="Reset all progress and locked difficulties"
+        >
+          Reset Unlocks
+        </button>
       </div>
 
       <div className="tools-container">

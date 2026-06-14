@@ -34,6 +34,11 @@ export const Minesweeper: React.FC = () => {
     return (isNegative ? '-' : '') + padded.substring(padded.length - 3);
   };
 
+  // Helper to format paint bucket count (supporting Infinity)
+  const formatPaintCount = (count: number): string => {
+    return count === Infinity ? '∞' : String(count);
+  };
+
   // Get current status face emoji
   const getFaceEmoji = (): string => {
     switch (gameState) {
@@ -114,7 +119,7 @@ export const Minesweeper: React.FC = () => {
               ? "Red Paint Bucket: Click a tile to start the game before using this tool"
               : paintBucketsRemaining <= 0
               ? "Red Paint Bucket: No uses remaining"
-              : `Red Paint Bucket: Flag all adjacent mines. (${paintBucketsRemaining} remaining)`
+              : `Red Paint Bucket: Flag all adjacent mines. (${formatPaintCount(paintBucketsRemaining)} remaining)`
           }
         >
           <svg
@@ -133,7 +138,7 @@ export const Minesweeper: React.FC = () => {
             <path d="M6 9h12l-1.5 11h-9L6 9z" fill={paintBucketsRemaining <= 0 ? "#475569" : "#ef4444"} />
             <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={paintBucketsRemaining <= 0 ? "#475569" : "#ef4444"} />
           </svg>
-          <span>Red Paint ({paintBucketsRemaining})</span>
+          <span>Red Paint ({formatPaintCount(paintBucketsRemaining)})</span>
         </button>
 
         {/* Blue Paint Bucket */}
@@ -146,7 +151,7 @@ export const Minesweeper: React.FC = () => {
               ? "Blue Paint Bucket: Click a tile to start the game before using this tool"
               : bluePaintBucketsRemaining <= 0
               ? "Blue Paint Bucket: No uses remaining"
-              : `Blue Paint Bucket: Reveal adjacent 1s. (${bluePaintBucketsRemaining} remaining)`
+              : `Blue Paint Bucket: Reveal adjacent 1s. (${formatPaintCount(bluePaintBucketsRemaining)} remaining)`
           }
         >
           <svg
@@ -165,7 +170,7 @@ export const Minesweeper: React.FC = () => {
             <path d="M6 9h12l-1.5 11h-9L6 9z" fill={bluePaintBucketsRemaining <= 0 ? "#475569" : "#3b82f6"} />
             <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={bluePaintBucketsRemaining <= 0 ? "#475569" : "#3b82f6"} />
           </svg>
-          <span>Blue Paint ({bluePaintBucketsRemaining})</span>
+          <span>Blue Paint ({formatPaintCount(bluePaintBucketsRemaining)})</span>
         </button>
 
         {/* Green Paint Bucket */}
@@ -178,7 +183,7 @@ export const Minesweeper: React.FC = () => {
               ? "Green Paint Bucket: Click a tile to start the game before using this tool"
               : greenPaintBucketsRemaining <= 0
               ? "Green Paint Bucket: No uses remaining"
-              : `Green Paint Bucket: Reveal adjacent 2s. (${greenPaintBucketsRemaining} remaining)`
+              : `Green Paint Bucket: Reveal adjacent 2s. (${formatPaintCount(greenPaintBucketsRemaining)} remaining)`
           }
         >
           <svg
@@ -197,7 +202,7 @@ export const Minesweeper: React.FC = () => {
             <path d="M6 9h12l-1.5 11h-9L6 9z" fill={greenPaintBucketsRemaining <= 0 ? "#475569" : "#22c55e"} />
             <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={greenPaintBucketsRemaining <= 0 ? "#475569" : "#22c55e"} />
           </svg>
-          <span>Green Paint ({greenPaintBucketsRemaining})</span>
+          <span>Green Paint ({formatPaintCount(greenPaintBucketsRemaining)})</span>
         </button>
       </div>
 

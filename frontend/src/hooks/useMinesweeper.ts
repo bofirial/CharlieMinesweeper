@@ -35,6 +35,9 @@ export function useMinesweeper() {
   const [isImpossibleUnlocked, setIsImpossibleUnlocked] = useState(() => {
     return localStorage.getItem('minesweeper_impossible_unlocked') === 'true';
   });
+  const [isProUnlocked, setIsProUnlocked] = useState(() => {
+    return localStorage.getItem('minesweeper_pro_unlocked') === 'true';
+  });
 
   const timerId = useRef<ReturnType<typeof setInterval> | null>(null);
   const isFirstClick = useRef(true);
@@ -233,6 +236,10 @@ export function useMinesweeper() {
         localStorage.setItem('minesweeper_impossible_unlocked', 'true');
         setIsImpossibleUnlocked(true);
       }
+      if (config.name === 'Expert') {
+        localStorage.setItem('minesweeper_pro_unlocked', 'true');
+        setIsProUnlocked(true);
+      }
       // Auto-flag all remaining unrevealed mines
       for (let r = 0; r < config.rows; r++) {
         for (let c = 0; c < config.cols; c++) {
@@ -319,6 +326,10 @@ export function useMinesweeper() {
           localStorage.setItem('minesweeper_impossible_unlocked', 'true');
           setIsImpossibleUnlocked(true);
         }
+        if (config.name === 'Expert') {
+          localStorage.setItem('minesweeper_pro_unlocked', 'true');
+          setIsProUnlocked(true);
+        }
         // Auto-flag remaining
         for (let r = 0; r < config.rows; r++) {
           for (let c = 0; c < config.cols; c++) {
@@ -397,6 +408,10 @@ export function useMinesweeper() {
         localStorage.setItem('minesweeper_impossible_unlocked', 'true');
         setIsImpossibleUnlocked(true);
       }
+      if (config.name === 'Expert') {
+        localStorage.setItem('minesweeper_pro_unlocked', 'true');
+        setIsProUnlocked(true);
+      }
       // Auto-flag remaining mines
       for (let r = 0; r < config.rows; r++) {
         for (let c = 0; c < config.cols; c++) {
@@ -434,5 +449,6 @@ export function useMinesweeper() {
     bluePaintBucketsRemaining,
     greenPaintBucketsRemaining,
     isImpossibleUnlocked,
+    isProUnlocked,
   };
 }

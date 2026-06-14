@@ -14,7 +14,7 @@ export interface GameConfig {
   rows: number;
   cols: number;
   mines: number;
-  name: 'Peaceful' | 'Beginner' | 'Bomb Rally' | 'Intermediate' | 'Expert' | 'Master' | 'Impossible' | 'Custom';
+  name: 'Peaceful' | 'Beginner' | 'Bomb Rally' | 'Intermediate' | 'Expert' | 'Pro' | 'Master' | 'Impossible' | 'Custom';
   redPaintBuckets: number;
   bluePaintBuckets: number;
   greenPaintBuckets: number;
@@ -65,6 +65,15 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     redPaintBuckets: 3,
     bluePaintBuckets: 5,
     greenPaintBuckets: 5,
+  },
+  Pro: {
+    rows: 18,
+    cols: 30,
+    mines: 120,
+    name: 'Pro',
+    redPaintBuckets: 4,
+    bluePaintBuckets: 6,
+    greenPaintBuckets: 6,
   },
   Master: {
     rows: 20,

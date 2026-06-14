@@ -385,6 +385,19 @@ body {
   font-weight: 600;
 }
 
+.mobile-only-instructions {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-only-instructions {
+    display: none;
+  }
+  .mobile-only-instructions {
+    display: block;
+  }
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {

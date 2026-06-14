@@ -22,21 +22,24 @@ const createEmptyBoard = (rows: number, cols: number): Cell[][] => {
 };
 
 export function useMinesweeper() {
-  const [config, setConfig] = useState<GameConfig>(DIFFICULTIES.Beginner);
+  const [config, setConfig] = useState<GameConfig>(DIFFICULTIES.Peaceful);
   const [board, setBoard] = useState<Cell[][]>(() =>
-    createEmptyBoard(DIFFICULTIES.Beginner.rows, DIFFICULTIES.Beginner.cols)
+    createEmptyBoard(DIFFICULTIES.Peaceful.rows, DIFFICULTIES.Peaceful.cols)
   );
   const [gameState, setGameState] = useState<GameState>('idle');
   const [timer, setTimer] = useState(0);
   const [flagCount, setFlagCount] = useState(0);
-  const [paintBucketsRemaining, setPaintBucketsRemaining] = useState(DIFFICULTIES.Beginner.redPaintBuckets);
-  const [bluePaintBucketsRemaining, setBluePaintBucketsRemaining] = useState(DIFFICULTIES.Beginner.bluePaintBuckets);
-  const [greenPaintBucketsRemaining, setGreenPaintBucketsRemaining] = useState(DIFFICULTIES.Beginner.greenPaintBuckets);
+  const [paintBucketsRemaining, setPaintBucketsRemaining] = useState(DIFFICULTIES.Peaceful.redPaintBuckets);
+  const [bluePaintBucketsRemaining, setBluePaintBucketsRemaining] = useState(DIFFICULTIES.Peaceful.bluePaintBuckets);
+  const [greenPaintBucketsRemaining, setGreenPaintBucketsRemaining] = useState(DIFFICULTIES.Peaceful.greenPaintBuckets);
   const [isImpossibleUnlocked, setIsImpossibleUnlocked] = useState(() => {
     return localStorage.getItem('minesweeper_impossible_unlocked') === 'true';
   });
   const [isProUnlocked, setIsProUnlocked] = useState(() => {
     return localStorage.getItem('minesweeper_pro_unlocked') === 'true';
+  });
+  const [isEasyUnlocked, setIsEasyUnlocked] = useState(() => {
+    return localStorage.getItem('minesweeper_easy_unlocked') === 'true';
   });
 
   const timerId = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -232,6 +235,10 @@ export function useMinesweeper() {
     // Check win condition
     if (checkWinCondition(currentBoard)) {
       setGameState('won');
+      if (config.name === 'Peaceful') {
+        localStorage.setItem('minesweeper_easy_unlocked', 'true');
+        setIsEasyUnlocked(true);
+      }
       if (config.name === 'Master') {
         localStorage.setItem('minesweeper_impossible_unlocked', 'true');
         setIsImpossibleUnlocked(true);
@@ -322,6 +329,10 @@ export function useMinesweeper() {
         }
       } else if (checkWinCondition(currentBoard)) {
         setGameState('won');
+        if (config.name === 'Peaceful') {
+          localStorage.setItem('minesweeper_easy_unlocked', 'true');
+          setIsEasyUnlocked(true);
+        }
         if (config.name === 'Master') {
           localStorage.setItem('minesweeper_impossible_unlocked', 'true');
           setIsImpossibleUnlocked(true);
@@ -404,6 +415,10 @@ export function useMinesweeper() {
 
     if (checkWinCondition(currentBoard)) {
       setGameState('won');
+      if (config.name === 'Peaceful') {
+        localStorage.setItem('minesweeper_easy_unlocked', 'true');
+        setIsEasyUnlocked(true);
+      }
       if (config.name === 'Master') {
         localStorage.setItem('minesweeper_impossible_unlocked', 'true');
         setIsImpossibleUnlocked(true);
@@ -450,5 +465,6 @@ export function useMinesweeper() {
     greenPaintBucketsRemaining,
     isImpossibleUnlocked,
     isProUnlocked,
+    isEasyUnlocked,
   };
 }

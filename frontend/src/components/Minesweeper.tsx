@@ -21,6 +21,7 @@ export const Minesweeper: React.FC = () => {
     greenPaintBucketsRemaining,
     isImpossibleUnlocked,
     isProUnlocked,
+    isEasyUnlocked,
   } = useMinesweeper();
 
   const [isGridMouseDown, setIsGridMouseDown] = useState(false);
@@ -95,6 +96,7 @@ export const Minesweeper: React.FC = () => {
 
       <div className="controls-container">
         {(Object.keys(DIFFICULTIES) as Array<Exclude<GameConfig['name'], 'Custom'>>).map((diff) => {
+          if (diff === 'Easy' && !isEasyUnlocked) return null;
           if (diff === 'Impossible' && !isImpossibleUnlocked) return null;
           if (diff === 'Pro' && !isProUnlocked) return null;
           return (

@@ -29,7 +29,7 @@ export function useMinesweeper() {
   const [gameState, setGameState] = useState<GameState>('idle');
   const [timer, setTimer] = useState(0);
   const [flagCount, setFlagCount] = useState(0);
-  const [hasUsedPaintBucket, setHasUsedPaintBucket] = useState(false);
+  const [paintBucketsRemaining, setPaintBucketsRemaining] = useState(DIFFICULTIES.Beginner.paintBuckets);
 
   const timerId = useRef<ReturnType<typeof setInterval> | null>(null);
   const isFirstClick = useRef(true);
@@ -51,7 +51,7 @@ export function useMinesweeper() {
     setGameState('idle');
     setTimer(0);
     setFlagCount(0);
-    setHasUsedPaintBucket(false);
+    setPaintBucketsRemaining(activeConfig.paintBuckets);
     isFirstClick.current = true;
   }, [config]);
 
@@ -321,7 +321,7 @@ export function useMinesweeper() {
 
   // Paint flags on all unrevealed neighbors of (row, col)
   const paintFlags = useCallback((row: number, col: number) => {
-    if (gameState === 'won' || gameState === 'lost' || hasUsedPaintBucket) return;
+    if (gameState === 'won' || gameState === 'lost' || paintBucketsRemaining <= 0) return;
 
     let currentBoard = JSON.parse(JSON.stringify(board)) as Cell[][];
 
@@ -347,8 +347,8 @@ export function useMinesweeper() {
       setFlagCount((f) => f + flagsAdded);
     }
     setBoard(currentBoard);
-    setHasUsedPaintBucket(true);
-  }, [board, gameState, hasUsedPaintBucket, config, initializeMinesAndNeighbors, getNeighbors]);
+    setPaintBucketsRemaining((p) => p - 1);
+  }, [board, gameState, paintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors]);
 
   return {
     board,
@@ -361,6 +361,6 @@ export function useMinesweeper() {
     toggleFlag,
     chordCell,
     paintFlags,
-    hasUsedPaintBucket,
+    paintBucketsRemaining,
   };
 }

@@ -15,7 +15,7 @@ export const Minesweeper: React.FC = () => {
     toggleFlag,
     chordCell,
     paintFlags,
-    hasUsedPaintBucket,
+    paintBucketsRemaining,
   } = useMinesweeper();
 
   const [isGridMouseDown, setIsGridMouseDown] = useState(false);
@@ -92,8 +92,14 @@ export const Minesweeper: React.FC = () => {
         <button
           className={`tool-btn paint-bucket-btn ${isPaintModeActive ? 'active' : ''}`}
           onClick={() => setIsPaintModeActive(!isPaintModeActive)}
-          disabled={gameState === 'won' || gameState === 'lost' || hasUsedPaintBucket}
-          title={hasUsedPaintBucket ? "Red Paint Bucket: Already used this game" : "Red Paint Bucket: Flag all adjacent mines. Single use per game."}
+          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || paintBucketsRemaining <= 0}
+          title={
+            gameState === 'idle'
+              ? "Red Paint Bucket: Click a tile to start the game before using this tool"
+              : paintBucketsRemaining <= 0
+              ? "Red Paint Bucket: No uses remaining"
+              : `Red Paint Bucket: Flag all adjacent mines. (${paintBucketsRemaining} remaining)`
+          }
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -108,10 +114,10 @@ export const Minesweeper: React.FC = () => {
             className="paint-bucket-svg"
           >
             <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" />
-            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={hasUsedPaintBucket ? "#475569" : "#ef4444"} />
-            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={hasUsedPaintBucket ? "#475569" : "#ef4444"} />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={paintBucketsRemaining <= 0 ? "#475569" : "#ef4444"} />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={paintBucketsRemaining <= 0 ? "#475569" : "#ef4444"} />
           </svg>
-          <span>Red Paint Bucket ({hasUsedPaintBucket ? 0 : 1})</span>
+          <span>Red Paint Bucket ({paintBucketsRemaining})</span>
         </button>
       </div>
 

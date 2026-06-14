@@ -15,6 +15,7 @@ export interface GameConfig {
   cols: number;
   mines: number;
   name: 'Beginner' | 'Intermediate' | 'Expert' | 'Custom';
+  paintBuckets: number;
 }
 
 export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameConfig> = {
@@ -23,17 +24,20 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     cols: 9,
     mines: 10,
     name: 'Beginner',
+    paintBuckets: 1,
   },
   Intermediate: {
     rows: 16,
     cols: 16,
     mines: 40,
     name: 'Intermediate',
+    paintBuckets: 2,
   },
   Expert: {
     rows: 16,
     cols: 30,
     mines: 99,
     name: 'Expert',
+    paintBuckets: 3,
   },
 };

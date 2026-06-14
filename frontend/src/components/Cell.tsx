@@ -49,6 +49,9 @@ export const Cell: React.FC<CellProps> = React.memo(({
       if (cell.isExploded) {
         cellClass += ' exploded';
         content = <span className="mine-icon">💥</span>;
+      } else if (isFlagged) {
+        cellClass += ' correctly-flagged';
+        content = <span className="mine-icon">💣</span>;
       } else {
         cellClass += ' mine';
         content = <span className="mine-icon">💣</span>;

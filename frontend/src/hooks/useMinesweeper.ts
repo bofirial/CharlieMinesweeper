@@ -31,6 +31,10 @@ export function useMinesweeper() {
   const [flagCount, setFlagCount] = useState(0);
   const [paintBucketsRemaining, setPaintBucketsRemaining] = useState(DIFFICULTIES.Beginner.redPaintBuckets);
   const [bluePaintBucketsRemaining, setBluePaintBucketsRemaining] = useState(DIFFICULTIES.Beginner.bluePaintBuckets);
+  const [greenPaintBucketsRemaining, setGreenPaintBucketsRemaining] = useState(DIFFICULTIES.Beginner.greenPaintBuckets);
+  const [isImpossibleUnlocked, setIsImpossibleUnlocked] = useState(() => {
+    return localStorage.getItem('minesweeper_impossible_unlocked') === 'true';
+  });
 
   const timerId = useRef<ReturnType<typeof setInterval> | null>(null);
   const isFirstClick = useRef(true);
@@ -54,6 +58,7 @@ export function useMinesweeper() {
     setFlagCount(0);
     setPaintBucketsRemaining(activeConfig.redPaintBuckets);
     setBluePaintBucketsRemaining(activeConfig.bluePaintBuckets);
+    setGreenPaintBucketsRemaining(activeConfig.greenPaintBuckets);
     isFirstClick.current = true;
   }, [config]);
 
@@ -224,6 +229,10 @@ export function useMinesweeper() {
     // Check win condition
     if (checkWinCondition(currentBoard)) {
       setGameState('won');
+      if (config.name === 'Master') {
+        localStorage.setItem('minesweeper_impossible_unlocked', 'true');
+        setIsImpossibleUnlocked(true);
+      }
       // Auto-flag all remaining unrevealed mines
       for (let r = 0; r < config.rows; r++) {
         for (let c = 0; c < config.cols; c++) {
@@ -306,6 +315,10 @@ export function useMinesweeper() {
         }
       } else if (checkWinCondition(currentBoard)) {
         setGameState('won');
+        if (config.name === 'Master') {
+          localStorage.setItem('minesweeper_impossible_unlocked', 'true');
+          setIsImpossibleUnlocked(true);
+        }
         // Auto-flag remaining
         for (let r = 0; r < config.rows; r++) {
           for (let c = 0; c < config.cols; c++) {
@@ -352,10 +365,12 @@ export function useMinesweeper() {
     setPaintBucketsRemaining((p) => p - 1);
   }, [board, gameState, paintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors]);
 
-  // Blue paint bucket: reveals all adjacent unrevealed, unflagged tiles of (row, col)
+  // Paint bucket revealing tool: reveals all adjacent unrevealed, unflagged tiles of (row, col)
+  // that have exactly `targetNumber` adjacent mines (1 for Blue Paint, 2 for Green Paint).
   // Safely skips revealing adjacent mines so they do not detonate!
-  const revealAdjacentCells = useCallback((row: number, col: number) => {
-    if (gameState === 'won' || gameState === 'lost' || bluePaintBucketsRemaining <= 0) return;
+  const revealAdjacentCells = useCallback((row: number, col: number, targetNumber: 1 | 2) => {
+    const bucketsRemaining = targetNumber === 1 ? bluePaintBucketsRemaining : greenPaintBucketsRemaining;
+    if (gameState === 'won' || gameState === 'lost' || bucketsRemaining <= 0) return;
 
     let currentBoard = JSON.parse(JSON.stringify(board)) as Cell[][];
 
@@ -370,14 +385,18 @@ export function useMinesweeper() {
 
     for (const adj of adjacents) {
       const neighbor = currentBoard[adj.r][adj.c];
-      // Only reveal if neighbor is unrevealed, unflagged, not a mine, and has exactly 1 adjacent mine
-      if (!neighbor.isRevealed && !neighbor.isFlagged && !neighbor.isMine && neighbor.neighborMines === 1) {
+      // Only reveal if neighbor is unrevealed, unflagged, not a mine, and has exactly targetNumber adjacent mines
+      if (!neighbor.isRevealed && !neighbor.isFlagged && !neighbor.isMine && neighbor.neighborMines === targetNumber) {
         neighbor.isRevealed = true;
       }
     }
 
     if (checkWinCondition(currentBoard)) {
       setGameState('won');
+      if (config.name === 'Master') {
+        localStorage.setItem('minesweeper_impossible_unlocked', 'true');
+        setIsImpossibleUnlocked(true);
+      }
       // Auto-flag remaining mines
       for (let r = 0; r < config.rows; r++) {
         for (let c = 0; c < config.cols; c++) {
@@ -390,8 +409,14 @@ export function useMinesweeper() {
     }
 
     setBoard(currentBoard);
-    setBluePaintBucketsRemaining((p) => p - 1);
-  }, [board, gameState, bluePaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, checkWinCondition]);
+    if (targetNumber === 1) {
+      setBluePaintBucketsRemaining((p) => p - 1);
+    } else {
+      setGreenPaintBucketsRemaining((p) => p - 1);
+    }
+  }, [board, gameState, bluePaintBucketsRemaining, greenPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, checkWinCondition]);
+
+
 
   return {
     board,
@@ -407,5 +432,7 @@ export function useMinesweeper() {
     paintBucketsRemaining,
     revealAdjacentCells,
     bluePaintBucketsRemaining,
+    greenPaintBucketsRemaining,
+    isImpossibleUnlocked,
   };
 }

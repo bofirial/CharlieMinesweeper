@@ -18,10 +18,12 @@ export const Minesweeper: React.FC = () => {
     paintBucketsRemaining,
     revealAdjacentCells,
     bluePaintBucketsRemaining,
+    greenPaintBucketsRemaining,
+    isImpossibleUnlocked,
   } = useMinesweeper();
 
   const [isGridMouseDown, setIsGridMouseDown] = useState(false);
-  const [activePaintMode, setActivePaintMode] = useState<'none' | 'red' | 'blue'>('none');
+  const [activePaintMode, setActivePaintMode] = useState<'none' | 'red' | 'blue' | 'green'>('none');
   const [hoveredCell, setHoveredCell] = useState<{ r: number; c: number } | null>(null);
 
   // Helper to pad numbers to 3 digits (e.g. 008, 099, -05)
@@ -59,7 +61,11 @@ export const Minesweeper: React.FC = () => {
       setActivePaintMode('none');
       setHoveredCell(null);
     } else if (activePaintMode === 'blue') {
-      revealAdjacentCells(row, col);
+      revealAdjacentCells(row, col, 1);
+      setActivePaintMode('none');
+      setHoveredCell(null);
+    } else if (activePaintMode === 'green') {
+      revealAdjacentCells(row, col, 2);
       setActivePaintMode('none');
       setHoveredCell(null);
     } else {
@@ -67,7 +73,7 @@ export const Minesweeper: React.FC = () => {
     }
   };
 
-  const isCellHighlighted = (r: number, c: number): 'none' | 'red' | 'blue' => {
+  const isCellHighlighted = (r: number, c: number): 'none' | 'red' | 'blue' | 'green' => {
     if (activePaintMode === 'none' || !hoveredCell) return 'none';
     const { r: hr, c: hc } = hoveredCell;
     const isNeighbor = Math.abs(r - hr) <= 1 && Math.abs(c - hc) <= 1;
@@ -83,15 +89,18 @@ export const Minesweeper: React.FC = () => {
       </div>
 
       <div className="controls-container">
-        {(Object.keys(DIFFICULTIES) as Array<Exclude<GameConfig['name'], 'Custom'>>).map((diff) => (
-          <button
-            key={diff}
-            className={`difficulty-btn ${config.name === diff ? 'active' : ''}`}
-            onClick={() => handleDifficultyChange(diff)}
-          >
-            {diff}
-          </button>
-        ))}
+        {(Object.keys(DIFFICULTIES) as Array<Exclude<GameConfig['name'], 'Custom'>>).map((diff) => {
+          if (diff === 'Impossible' && !isImpossibleUnlocked) return null;
+          return (
+            <button
+              key={diff}
+              className={`difficulty-btn ${config.name === diff ? 'active' : ''}`}
+              onClick={() => handleDifficultyChange(diff)}
+            >
+              {diff}
+            </button>
+          );
+        })}
       </div>
 
       <div className="tools-container">
@@ -157,6 +166,38 @@ export const Minesweeper: React.FC = () => {
             <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={bluePaintBucketsRemaining <= 0 ? "#475569" : "#3b82f6"} />
           </svg>
           <span>Blue Paint ({bluePaintBucketsRemaining})</span>
+        </button>
+
+        {/* Green Paint Bucket */}
+        <button
+          className={`tool-btn paint-bucket-btn green-paint ${activePaintMode === 'green' ? 'active' : ''}`}
+          onClick={() => setActivePaintMode(activePaintMode === 'green' ? 'none' : 'green')}
+          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || greenPaintBucketsRemaining <= 0}
+          title={
+            gameState === 'idle'
+              ? "Green Paint Bucket: Click a tile to start the game before using this tool"
+              : greenPaintBucketsRemaining <= 0
+              ? "Green Paint Bucket: No uses remaining"
+              : `Green Paint Bucket: Reveal adjacent 2s. (${greenPaintBucketsRemaining} remaining)`
+          }
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="paint-bucket-svg"
+          >
+            <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={greenPaintBucketsRemaining <= 0 ? "#475569" : "#22c55e"} />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={greenPaintBucketsRemaining <= 0 ? "#475569" : "#22c55e"} />
+          </svg>
+          <span>Green Paint ({greenPaintBucketsRemaining})</span>
         </button>
       </div>
 
@@ -225,7 +266,7 @@ export const Minesweeper: React.FC = () => {
       <div className="game-instructions">
         💡 <span>Left-Click</span> to reveal tiles. <span>Right-Click</span> to place flags.<br />
         <span>Double-Click</span> or <span>Middle-Click</span> a revealed number to Chord.<br />
-        🔴 Select the <span>Red Paint</span> to flag adjacent mines. <span>🔵 Select the Blue Paint</span> to reveal adjacent 1s (neither flags/reveals the clicked tile itself).
+        🔴 <span>Red Paint</span> flags adjacent mines. 🔵 <span>Blue Paint</span> reveals adjacent 1s. 🟢 <span>Green Paint</span> reveals adjacent 2s (none reveals/flags the clicked tile itself).
       </div>
     </div>
   );

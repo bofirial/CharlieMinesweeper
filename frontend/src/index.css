@@ -561,3 +561,47 @@ body {
   z-index: 10;
 }
 
+/* Green Paint specific styles */
+.tool-btn.green-paint {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1.5px solid rgba(34, 197, 94, 0.3);
+  color: #86efac;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.05);
+}
+
+.tool-btn.green-paint:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.25);
+  border-color: rgba(34, 197, 94, 0.6);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(34, 197, 94, 0.25), 0 0 8px rgba(34, 197, 94, 0.15);
+}
+
+.tool-btn.green-paint.active {
+  background: #22c55e;
+  border-color: #dcfce7;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.65);
+  animation: pulse-green 1.8s infinite;
+}
+
+@keyframes pulse-green {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.cell.unrevealed.paint-highlighted-green {
+  background: rgba(34, 197, 94, 0.3) !important;
+  border-color: #22c55e !important;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.7), inset 0 2px 4px rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.08);
+  z-index: 10;
+}
+

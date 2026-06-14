@@ -14,9 +14,10 @@ export interface GameConfig {
   rows: number;
   cols: number;
   mines: number;
-  name: 'Beginner' | 'Intermediate' | 'Expert' | 'Master' | 'Custom';
+  name: 'Beginner' | 'Intermediate' | 'Expert' | 'Master' | 'Impossible' | 'Custom';
   redPaintBuckets: number;
   bluePaintBuckets: number;
+  greenPaintBuckets: number;
 }
 
 export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameConfig> = {
@@ -27,6 +28,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     name: 'Beginner',
     redPaintBuckets: 1,
     bluePaintBuckets: 1,
+    greenPaintBuckets: 1,
   },
   Intermediate: {
     rows: 16,
@@ -35,6 +37,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     name: 'Intermediate',
     redPaintBuckets: 2,
     bluePaintBuckets: 3,
+    greenPaintBuckets: 3,
   },
   Expert: {
     rows: 16,
@@ -43,6 +46,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     name: 'Expert',
     redPaintBuckets: 3,
     bluePaintBuckets: 5,
+    greenPaintBuckets: 5,
   },
   Master: {
     rows: 20,
@@ -51,5 +55,15 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     name: 'Master',
     redPaintBuckets: 4,
     bluePaintBuckets: 7,
+    greenPaintBuckets: 7,
+  },
+  Impossible: {
+    rows: 24,
+    cols: 30,
+    mines: 216,
+    name: 'Impossible',
+    redPaintBuckets: 0,
+    bluePaintBuckets: 0,
+    greenPaintBuckets: 0,
   },
 };

@@ -6,7 +6,7 @@ interface CellProps {
   onClick: () => void;
   onFlag: () => void;
   onChord: () => void;
-  isPaintHighlighted?: boolean;
+  isPaintHighlighted?: 'none' | 'red' | 'blue';
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
 }
@@ -16,7 +16,7 @@ export const Cell: React.FC<CellProps> = React.memo(({
   onClick,
   onFlag,
   onChord,
-  isPaintHighlighted = false,
+  isPaintHighlighted = 'none',
   onMouseEnter,
   onMouseLeave,
 }) => {
@@ -63,8 +63,10 @@ export const Cell: React.FC<CellProps> = React.memo(({
       cellClass += ' flagged';
       content = <span className="flag-icon">🚩</span>;
     }
-    if (isPaintHighlighted) {
-      cellClass += ' paint-highlighted';
+    if (isPaintHighlighted === 'red') {
+      cellClass += ' paint-highlighted-red';
+    } else if (isPaintHighlighted === 'blue') {
+      cellClass += ' paint-highlighted-blue';
     }
   }
 

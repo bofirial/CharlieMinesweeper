@@ -438,24 +438,12 @@ body {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  background: rgba(244, 63, 94, 0.15);
-  border: 1.5px solid rgba(244, 63, 94, 0.3);
-  color: #fda4af;
   padding: 0.6rem 1.4rem;
   font-size: 0.95rem;
   font-weight: 700;
   border-radius: 14px;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.05);
-}
-
-.tool-btn:hover:not(:disabled) {
-  background: rgba(244, 63, 94, 0.25);
-  border-color: rgba(244, 63, 94, 0.6);
-  color: #fff;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(244, 63, 94, 0.25), 0 0 8px rgba(244, 63, 94, 0.15);
 }
 
 .tool-btn:active:not(:disabled) {
@@ -465,17 +453,10 @@ body {
 .tool-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  color: #64748b;
-}
-
-.tool-btn.active {
-  background: #f43f5e;
-  border-color: #ffe4e6;
-  color: #ffffff;
-  box-shadow: 0 0 20px rgba(244, 63, 94, 0.65);
-  animation: pulse-red 1.8s infinite;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #64748b !important;
+  box-shadow: none !important;
 }
 
 .paint-bucket-svg {
@@ -485,6 +466,54 @@ body {
 .tool-btn.active .paint-bucket-svg {
   transform: rotate(-15deg) scale(1.1);
   filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+}
+
+/* Red Paint specific styles */
+.tool-btn.red-paint {
+  background: rgba(244, 63, 94, 0.15);
+  border: 1.5px solid rgba(244, 63, 94, 0.3);
+  color: #fda4af;
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.05);
+}
+
+.tool-btn.red-paint:hover:not(:disabled) {
+  background: rgba(244, 63, 94, 0.25);
+  border-color: rgba(244, 63, 94, 0.6);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(244, 63, 94, 0.25), 0 0 8px rgba(244, 63, 94, 0.15);
+}
+
+.tool-btn.red-paint.active {
+  background: #f43f5e;
+  border-color: #ffe4e6;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.65);
+  animation: pulse-red 1.8s infinite;
+}
+
+/* Blue Paint specific styles */
+.tool-btn.blue-paint {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1.5px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.05);
+}
+
+.tool-btn.blue-paint:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.6);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.25), 0 0 8px rgba(59, 130, 246, 0.15);
+}
+
+.tool-btn.blue-paint.active {
+  background: #3b82f6;
+  border-color: #dbeafe;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.65);
+  animation: pulse-blue 1.8s infinite;
 }
 
 @keyframes pulse-red {
@@ -499,15 +528,35 @@ body {
   }
 }
 
+@keyframes pulse-blue {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
 /* Paint mode active grid styles */
 .board-grid.paint-mode-active .cell.unrevealed {
   cursor: crosshair;
 }
 
-.cell.unrevealed.paint-highlighted {
+.cell.unrevealed.paint-highlighted-red {
   background: rgba(244, 63, 94, 0.3) !important;
   border-color: #f43f5e !important;
   box-shadow: 0 0 12px rgba(244, 63, 94, 0.7), inset 0 2px 4px rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.08);
+  z-index: 10;
+}
+
+.cell.unrevealed.paint-highlighted-blue {
+  background: rgba(59, 130, 246, 0.3) !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.7), inset 0 2px 4px rgba(255, 255, 255, 0.2) !important;
   transform: scale(1.08);
   z-index: 10;
 }

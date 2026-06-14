@@ -29,7 +29,8 @@ export function useMinesweeper() {
   const [gameState, setGameState] = useState<GameState>('idle');
   const [timer, setTimer] = useState(0);
   const [flagCount, setFlagCount] = useState(0);
-  const [paintBucketsRemaining, setPaintBucketsRemaining] = useState(DIFFICULTIES.Beginner.paintBuckets);
+  const [paintBucketsRemaining, setPaintBucketsRemaining] = useState(DIFFICULTIES.Beginner.redPaintBuckets);
+  const [bluePaintBucketsRemaining, setBluePaintBucketsRemaining] = useState(DIFFICULTIES.Beginner.bluePaintBuckets);
 
   const timerId = useRef<ReturnType<typeof setInterval> | null>(null);
   const isFirstClick = useRef(true);
@@ -51,7 +52,8 @@ export function useMinesweeper() {
     setGameState('idle');
     setTimer(0);
     setFlagCount(0);
-    setPaintBucketsRemaining(activeConfig.paintBuckets);
+    setPaintBucketsRemaining(activeConfig.redPaintBuckets);
+    setBluePaintBucketsRemaining(activeConfig.bluePaintBuckets);
     isFirstClick.current = true;
   }, [config]);
 
@@ -78,7 +80,7 @@ export function useMinesweeper() {
   }, [gameState]);
 
   // Check if win condition is met (all non-mine cells revealed)
-  const checkWinCondition = (currentBoard: Cell[][]): boolean => {
+  const checkWinCondition = useCallback((currentBoard: Cell[][]): boolean => {
     for (let r = 0; r < config.rows; r++) {
       for (let c = 0; c < config.cols; c++) {
         const cell = currentBoard[r][c];
@@ -88,7 +90,7 @@ export function useMinesweeper() {
       }
     }
     return true;
-  };
+  }, [config.rows, config.cols]);
 
   // Helper to get all valid adjacent neighbors of a cell
   const getNeighbors = useCallback((row: number, col: number, rows: number, cols: number) => {
@@ -154,7 +156,7 @@ export function useMinesweeper() {
   }, [config, getNeighbors]);
 
   // Recursively reveal cells starting from (row, col) - Flood Fill
-  const revealEmptyCells = (
+  const revealEmptyCells = useCallback((
     currentBoard: Cell[][],
     startRow: number,
     startCol: number
@@ -178,7 +180,7 @@ export function useMinesweeper() {
         }
       }
     }
-  };
+  }, [getNeighbors, config.rows, config.cols]);
 
   // Click handler to reveal a cell
   const revealCell = useCallback((row: number, col: number) => {
@@ -234,7 +236,7 @@ export function useMinesweeper() {
     }
 
     setBoard(currentBoard);
-  }, [board, gameState, config, initializeMinesAndNeighbors, getNeighbors]);
+  }, [board, gameState, config, initializeMinesAndNeighbors, checkWinCondition, revealEmptyCells]);
 
   // Right-click handler to toggle flags
   const toggleFlag = useCallback((row: number, col: number) => {
@@ -317,7 +319,7 @@ export function useMinesweeper() {
 
       setBoard(currentBoard);
     }
-  }, [board, gameState, config, getNeighbors]);
+  }, [board, gameState, config, getNeighbors, checkWinCondition, revealEmptyCells]);
 
   // Paint flags on all unrevealed neighbors of (row, col)
   const paintFlags = useCallback((row: number, col: number) => {
@@ -350,6 +352,47 @@ export function useMinesweeper() {
     setPaintBucketsRemaining((p) => p - 1);
   }, [board, gameState, paintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors]);
 
+  // Blue paint bucket: reveals all adjacent unrevealed, unflagged tiles of (row, col)
+  // Safely skips revealing adjacent mines so they do not detonate!
+  const revealAdjacentCells = useCallback((row: number, col: number) => {
+    if (gameState === 'won' || gameState === 'lost' || bluePaintBucketsRemaining <= 0) return;
+
+    let currentBoard = JSON.parse(JSON.stringify(board)) as Cell[][];
+
+    // If first click, initialize the board first
+    if (isFirstClick.current) {
+      isFirstClick.current = false;
+      currentBoard = initializeMinesAndNeighbors(currentBoard, row, col);
+      setGameState('playing');
+    }
+
+    const adjacents = getNeighbors(row, col, config.rows, config.cols);
+
+    for (const adj of adjacents) {
+      const neighbor = currentBoard[adj.r][adj.c];
+      // Only reveal if neighbor is unrevealed, unflagged, not a mine, and has exactly 1 adjacent mine
+      if (!neighbor.isRevealed && !neighbor.isFlagged && !neighbor.isMine && neighbor.neighborMines === 1) {
+        neighbor.isRevealed = true;
+      }
+    }
+
+    if (checkWinCondition(currentBoard)) {
+      setGameState('won');
+      // Auto-flag remaining mines
+      for (let r = 0; r < config.rows; r++) {
+        for (let c = 0; c < config.cols; c++) {
+          if (currentBoard[r][c].isMine) {
+            currentBoard[r][c].isFlagged = true;
+          }
+        }
+      }
+      setFlagCount(config.mines);
+    }
+
+    setBoard(currentBoard);
+    setBluePaintBucketsRemaining((p) => p - 1);
+  }, [board, gameState, bluePaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, checkWinCondition]);
+
   return {
     board,
     gameState,
@@ -362,5 +405,7 @@ export function useMinesweeper() {
     chordCell,
     paintFlags,
     paintBucketsRemaining,
+    revealAdjacentCells,
+    bluePaintBucketsRemaining,
   };
 }

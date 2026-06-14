@@ -16,10 +16,12 @@ export const Minesweeper: React.FC = () => {
     chordCell,
     paintFlags,
     paintBucketsRemaining,
+    revealAdjacentCells,
+    bluePaintBucketsRemaining,
   } = useMinesweeper();
 
   const [isGridMouseDown, setIsGridMouseDown] = useState(false);
-  const [isPaintModeActive, setIsPaintModeActive] = useState(false);
+  const [activePaintMode, setActivePaintMode] = useState<'none' | 'red' | 'blue'>('none');
   const [hoveredCell, setHoveredCell] = useState<{ r: number; c: number } | null>(null);
 
   // Helper to pad numbers to 3 digits (e.g. 008, 099, -05)
@@ -46,27 +48,31 @@ export const Minesweeper: React.FC = () => {
   };
 
   const handleDifficultyChange = (difficulty: Exclude<GameConfig['name'], 'Custom'>) => {
-    setIsPaintModeActive(false);
+    setActivePaintMode('none');
     setHoveredCell(null);
     resetGame(DIFFICULTIES[difficulty]);
   };
 
   const handleCellClick = (row: number, col: number) => {
-    if (isPaintModeActive) {
+    if (activePaintMode === 'red') {
       paintFlags(row, col);
-      setIsPaintModeActive(false);
+      setActivePaintMode('none');
+      setHoveredCell(null);
+    } else if (activePaintMode === 'blue') {
+      revealAdjacentCells(row, col);
+      setActivePaintMode('none');
       setHoveredCell(null);
     } else {
       revealCell(row, col);
     }
   };
 
-  const isCellHighlighted = (r: number, c: number): boolean => {
-    if (!isPaintModeActive || !hoveredCell) return false;
+  const isCellHighlighted = (r: number, c: number): 'none' | 'red' | 'blue' => {
+    if (activePaintMode === 'none' || !hoveredCell) return 'none';
     const { r: hr, c: hc } = hoveredCell;
     const isNeighbor = Math.abs(r - hr) <= 1 && Math.abs(c - hc) <= 1;
     const isSelf = r === hr && c === hc;
-    return isNeighbor && !isSelf;
+    return isNeighbor && !isSelf ? activePaintMode : 'none';
   };
 
   return (
@@ -89,9 +95,10 @@ export const Minesweeper: React.FC = () => {
       </div>
 
       <div className="tools-container">
+        {/* Red Paint Bucket */}
         <button
-          className={`tool-btn paint-bucket-btn ${isPaintModeActive ? 'active' : ''}`}
-          onClick={() => setIsPaintModeActive(!isPaintModeActive)}
+          className={`tool-btn paint-bucket-btn red-paint ${activePaintMode === 'red' ? 'active' : ''}`}
+          onClick={() => setActivePaintMode(activePaintMode === 'red' ? 'none' : 'red')}
           disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || paintBucketsRemaining <= 0}
           title={
             gameState === 'idle'
@@ -117,7 +124,39 @@ export const Minesweeper: React.FC = () => {
             <path d="M6 9h12l-1.5 11h-9L6 9z" fill={paintBucketsRemaining <= 0 ? "#475569" : "#ef4444"} />
             <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={paintBucketsRemaining <= 0 ? "#475569" : "#ef4444"} />
           </svg>
-          <span>Red Paint Bucket ({paintBucketsRemaining})</span>
+          <span>Red Paint ({paintBucketsRemaining})</span>
+        </button>
+
+        {/* Blue Paint Bucket */}
+        <button
+          className={`tool-btn paint-bucket-btn blue-paint ${activePaintMode === 'blue' ? 'active' : ''}`}
+          onClick={() => setActivePaintMode(activePaintMode === 'blue' ? 'none' : 'blue')}
+          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || bluePaintBucketsRemaining <= 0}
+          title={
+            gameState === 'idle'
+              ? "Blue Paint Bucket: Click a tile to start the game before using this tool"
+              : bluePaintBucketsRemaining <= 0
+              ? "Blue Paint Bucket: No uses remaining"
+              : `Blue Paint Bucket: Reveal adjacent 1s. (${bluePaintBucketsRemaining} remaining)`
+          }
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="paint-bucket-svg"
+          >
+            <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={bluePaintBucketsRemaining <= 0 ? "#475569" : "#3b82f6"} />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={bluePaintBucketsRemaining <= 0 ? "#475569" : "#3b82f6"} />
+          </svg>
+          <span>Blue Paint ({bluePaintBucketsRemaining})</span>
         </button>
       </div>
 
@@ -134,7 +173,7 @@ export const Minesweeper: React.FC = () => {
           <button
             className="face-button"
             onClick={() => {
-              setIsPaintModeActive(false);
+              setActivePaintMode('none');
               setHoveredCell(null);
               resetGame();
             }}
@@ -154,7 +193,7 @@ export const Minesweeper: React.FC = () => {
         {/* Board Grid */}
         <div className="board-grid-wrapper">
           <div
-            className={`board-grid ${isPaintModeActive ? 'paint-mode-active' : ''}`}
+            className={`board-grid ${activePaintMode !== 'none' ? 'paint-mode-active' : ''}`}
             style={{
               gridTemplateColumns: `repeat(${config.cols}, 32px)`,
             }}
@@ -174,8 +213,8 @@ export const Minesweeper: React.FC = () => {
                   onFlag={() => toggleFlag(rowIndex, colIndex)}
                   onChord={() => chordCell(rowIndex, colIndex)}
                   isPaintHighlighted={isCellHighlighted(rowIndex, colIndex)}
-                  onMouseEnter={() => isPaintModeActive && setHoveredCell({ r: rowIndex, c: colIndex })}
-                  onMouseLeave={() => isPaintModeActive && setHoveredCell(null)}
+                  onMouseEnter={() => activePaintMode !== 'none' && setHoveredCell({ r: rowIndex, c: colIndex })}
+                  onMouseLeave={() => activePaintMode !== 'none' && setHoveredCell(null)}
                 />
               ))
             )}
@@ -186,7 +225,7 @@ export const Minesweeper: React.FC = () => {
       <div className="game-instructions">
         💡 <span>Left-Click</span> to reveal tiles. <span>Right-Click</span> to place flags.<br />
         <span>Double-Click</span> or <span>Middle-Click</span> a revealed number to Chord.<br />
-        🔴 Select the <span>Red Paint Bucket</span> to flag all spaces touching the next tile you click (it does not flag the clicked space itself).
+        🔴 Select the <span>Red Paint</span> to flag adjacent mines. <span>🔵 Select the Blue Paint</span> to reveal adjacent 1s (neither flags/reveals the clicked tile itself).
       </div>
     </div>
   );

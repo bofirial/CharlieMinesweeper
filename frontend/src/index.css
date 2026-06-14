@@ -410,3 +410,90 @@ body {
 .board-grid-wrapper::-webkit-scrollbar-thumb:hover {
   background: rgba(99, 102, 241, 0.6);
 }
+
+/* Paint Bucket Tool Button */
+.tools-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(244, 63, 94, 0.15);
+  border: 1.5px solid rgba(244, 63, 94, 0.3);
+  color: #fda4af;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.05);
+}
+
+.tool-btn:hover:not(:disabled) {
+  background: rgba(244, 63, 94, 0.25);
+  border-color: rgba(244, 63, 94, 0.6);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(244, 63, 94, 0.25), 0 0 8px rgba(244, 63, 94, 0.15);
+}
+
+.tool-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.tool-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #64748b;
+}
+
+.tool-btn.active {
+  background: #f43f5e;
+  border-color: #ffe4e6;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.65);
+  animation: pulse-red 1.8s infinite;
+}
+
+.paint-bucket-svg {
+  transition: transform 0.25s ease;
+}
+
+.tool-btn.active .paint-bucket-svg {
+  transform: rotate(-15deg) scale(1.1);
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+}
+
+@keyframes pulse-red {
+  0% {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(244, 63, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
+  }
+}
+
+/* Paint mode active grid styles */
+.board-grid.paint-mode-active .cell.unrevealed {
+  cursor: crosshair;
+}
+
+.board-grid.paint-mode-active .cell.unrevealed:hover {
+  background: rgba(244, 63, 94, 0.25) !important;
+  border-color: #f43f5e !important;
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.7), inset 0 2px 4px rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.12);
+  z-index: 10;
+}
+

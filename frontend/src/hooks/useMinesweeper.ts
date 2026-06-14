@@ -1,35 +1,38 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { type Cell, type GameState, type GameConfig, DIFFICULTIES } from '../types';
 
+// Initialize an empty board filled with default cells
+const createEmptyBoard = (rows: number, cols: number): Cell[][] => {
+  const newBoard: Cell[][] = [];
+  for (let r = 0; r < rows; r++) {
+    const rowCells: Cell[] = [];
+    for (let c = 0; c < cols; c++) {
+      rowCells.push({
+        row: r,
+        col: c,
+        isMine: false,
+        isRevealed: false,
+        isFlagged: false,
+        neighborMines: 0,
+      });
+    }
+    newBoard.push(rowCells);
+  }
+  return newBoard;
+};
+
 export function useMinesweeper() {
   const [config, setConfig] = useState<GameConfig>(DIFFICULTIES.Beginner);
-  const [board, setBoard] = useState<Cell[][]>([]);
+  const [board, setBoard] = useState<Cell[][]>(() =>
+    createEmptyBoard(DIFFICULTIES.Beginner.rows, DIFFICULTIES.Beginner.cols)
+  );
   const [gameState, setGameState] = useState<GameState>('idle');
   const [timer, setTimer] = useState(0);
   const [flagCount, setFlagCount] = useState(0);
+  const [hasUsedPaintBucket, setHasUsedPaintBucket] = useState(false);
 
   const timerId = useRef<ReturnType<typeof setInterval> | null>(null);
   const isFirstClick = useRef(true);
-
-  // Initialize an empty board filled with default cells
-  const createEmptyBoard = useCallback((rows: number, cols: number): Cell[][] => {
-    const newBoard: Cell[][] = [];
-    for (let r = 0; r < rows; r++) {
-      const rowCells: Cell[] = [];
-      for (let c = 0; c < cols; c++) {
-        rowCells.push({
-          row: r,
-          col: c,
-          isMine: false,
-          isRevealed: false,
-          isFlagged: false,
-          neighborMines: 0,
-        });
-      }
-      newBoard.push(rowCells);
-    }
-    return newBoard;
-  }, []);
 
   // Reset the game state
   const resetGame = useCallback((newConfig?: GameConfig) => {
@@ -48,16 +51,10 @@ export function useMinesweeper() {
     setGameState('idle');
     setTimer(0);
     setFlagCount(0);
+    setHasUsedPaintBucket(false);
     isFirstClick.current = true;
-  }, [config, createEmptyBoard]);
+  }, [config]);
 
-  // Run initial reset
-  useEffect(() => {
-    resetGame();
-    return () => {
-      if (timerId.current) clearInterval(timerId.current);
-    };
-  }, [config.name]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Timer effect
   useEffect(() => {
@@ -322,6 +319,37 @@ export function useMinesweeper() {
     }
   }, [board, gameState, config, getNeighbors]);
 
+  // Paint flags on all unrevealed neighbors of (row, col)
+  const paintFlags = useCallback((row: number, col: number) => {
+    if (gameState === 'won' || gameState === 'lost' || hasUsedPaintBucket) return;
+
+    let currentBoard = JSON.parse(JSON.stringify(board)) as Cell[][];
+
+    // If first click, initialize the board first
+    if (isFirstClick.current) {
+      isFirstClick.current = false;
+      currentBoard = initializeMinesAndNeighbors(currentBoard, row, col);
+      setGameState('playing');
+    }
+
+    const adjacents = getNeighbors(row, col, config.rows, config.cols);
+    let flagsAdded = 0;
+
+    adjacents.forEach((n) => {
+      const neighbor = currentBoard[n.r][n.c];
+      if (!neighbor.isRevealed && !neighbor.isFlagged && neighbor.isMine) {
+        neighbor.isFlagged = true;
+        flagsAdded++;
+      }
+    });
+
+    if (flagsAdded > 0) {
+      setFlagCount((f) => f + flagsAdded);
+    }
+    setBoard(currentBoard);
+    setHasUsedPaintBucket(true);
+  }, [board, gameState, hasUsedPaintBucket, config, initializeMinesAndNeighbors, getNeighbors]);
+
   return {
     board,
     gameState,
@@ -332,5 +360,7 @@ export function useMinesweeper() {
     revealCell,
     toggleFlag,
     chordCell,
+    paintFlags,
+    hasUsedPaintBucket,
   };
 }

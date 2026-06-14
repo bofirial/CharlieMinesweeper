@@ -14,9 +14,12 @@ export const Minesweeper: React.FC = () => {
     revealCell,
     toggleFlag,
     chordCell,
+    paintFlags,
+    hasUsedPaintBucket,
   } = useMinesweeper();
 
   const [isGridMouseDown, setIsGridMouseDown] = useState(false);
+  const [isPaintModeActive, setIsPaintModeActive] = useState(false);
 
   // Helper to pad numbers to 3 digits (e.g. 008, 099, -05)
   const formatNumber = (num: number): string => {
@@ -42,7 +45,17 @@ export const Minesweeper: React.FC = () => {
   };
 
   const handleDifficultyChange = (difficulty: Exclude<GameConfig['name'], 'Custom'>) => {
+    setIsPaintModeActive(false);
     resetGame(DIFFICULTIES[difficulty]);
+  };
+
+  const handleCellClick = (row: number, col: number) => {
+    if (isPaintModeActive) {
+      paintFlags(row, col);
+      setIsPaintModeActive(false);
+    } else {
+      revealCell(row, col);
+    }
   };
 
   return (
@@ -64,6 +77,33 @@ export const Minesweeper: React.FC = () => {
         ))}
       </div>
 
+      <div className="tools-container">
+        <button
+          className={`tool-btn paint-bucket-btn ${isPaintModeActive ? 'active' : ''}`}
+          onClick={() => setIsPaintModeActive(!isPaintModeActive)}
+          disabled={gameState === 'won' || gameState === 'lost' || hasUsedPaintBucket}
+          title={hasUsedPaintBucket ? "Red Paint Bucket: Already used this game" : "Red Paint Bucket: Flag all adjacent mines. Single use per game."}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="paint-bucket-svg"
+          >
+            <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={hasUsedPaintBucket ? "#475569" : "#ef4444"} />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={hasUsedPaintBucket ? "#475569" : "#ef4444"} />
+          </svg>
+          <span>Red Paint Bucket ({hasUsedPaintBucket ? 0 : 1})</span>
+        </button>
+      </div>
+
       <div className={`game-cabinet ${gameState}`}>
         <div className="game-header">
           {/* Flag / Mine Counter */}
@@ -76,7 +116,10 @@ export const Minesweeper: React.FC = () => {
           {/* Smiley Reset Button */}
           <button
             className="face-button"
-            onClick={() => resetGame()}
+            onClick={() => {
+              setIsPaintModeActive(false);
+              resetGame();
+            }}
             title="Reset Game"
           >
             <span className="face-emoji">{getFaceEmoji()}</span>
@@ -93,7 +136,7 @@ export const Minesweeper: React.FC = () => {
         {/* Board Grid */}
         <div className="board-grid-wrapper">
           <div
-            className="board-grid"
+            className={`board-grid ${isPaintModeActive ? 'paint-mode-active' : ''}`}
             style={{
               gridTemplateColumns: `repeat(${config.cols}, 32px)`,
             }}
@@ -106,7 +149,7 @@ export const Minesweeper: React.FC = () => {
                 <Cell
                   key={`${rowIndex}-${colIndex}`}
                   cell={cell}
-                  onClick={() => revealCell(rowIndex, colIndex)}
+                  onClick={() => handleCellClick(rowIndex, colIndex)}
                   onFlag={() => toggleFlag(rowIndex, colIndex)}
                   onChord={() => chordCell(rowIndex, colIndex)}
                 />
@@ -118,7 +161,8 @@ export const Minesweeper: React.FC = () => {
 
       <div className="game-instructions">
         💡 <span>Left-Click</span> to reveal tiles. <span>Right-Click</span> to place flags.<br />
-        <span>Double-Click</span> or <span>Middle-Click</span> a revealed number to Chord (reveal surrounding tiles when flags match).
+        <span>Double-Click</span> or <span>Middle-Click</span> a revealed number to Chord.<br />
+        🔴 Select the <span>Red Paint Bucket</span> to flag all spaces touching the next tile you click (it does not flag the clicked space itself).
       </div>
     </div>
   );

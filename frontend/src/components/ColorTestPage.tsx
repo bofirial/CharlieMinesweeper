@@ -1,8 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
+const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:5045' : '';
 import { Cell } from './Cell';
 import { DIFFICULTIES, type Cell as CellType } from '../types';
 
+interface FeedbackItem {
+  id: string;
+  name: string;
+  type: 'bug' | 'feature' | 'praise' | 'other';
+  rating: number;
+  content: string;
+  timestamp: string;
+}
+
+
+
 export const ColorTestPage: React.FC = () => {
+  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
+
+  const fetchFeedbacks = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/feedbacks`);
+      if (response.ok) {
+        const data = await response.json();
+        setFeedbacks(data);
+      }
+    } catch (e) {
+      console.error("Error fetching feedbacks:", e);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchFeedbacks();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleDeleteFeedback = async (id: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/feedbacks/${id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setFeedbacks((prev) => prev.filter((item) => item.id !== id));
+      }
+    } catch (e) {
+      console.error("Error deleting feedback:", e);
+    }
+  };
+
   // Construct a mock board to showcase all numbers (1-8), mines, flags, and states
   const mockBoard: CellType[][] = [
     // Row 0: Numbers 1 to 8 and an exploded mine
@@ -212,6 +259,83 @@ export const ColorTestPage: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Submitted Feedbacks Card */}
+        <div 
+          className="game-cabinet" 
+          style={{ 
+            minWidth: '350px', 
+            flex: '1 1 350px',
+            alignItems: 'stretch', 
+            padding: '1.5rem',
+            background: 'rgba(15, 23, 42, 0.85)'
+          }}
+        >
+          <h3 style={{ margin: '0 0 1rem 0', textAlign: 'center', fontSize: '1.2rem', color: '#a5b4fc' }}>
+            Submitted Feedbacks
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+            {feedbacks.length === 0 ? (
+              <div style={{ textAlign: 'center', color: '#64748b', fontSize: '0.9rem', padding: '1.5rem' }}>
+                No feedback submitted yet.
+              </div>
+            ) : (
+              feedbacks.map((item) => (
+                <div 
+                  key={item.id} 
+                  style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    gap: '0.4rem',
+                    padding: '0.75rem',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    position: 'relative'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f8fafc' }}>{item.name}</span>
+                    <button 
+                      onClick={() => handleDeleteFeedback(item.id)}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        color: '#ef4444',
+                        padding: '0.15rem 0.4rem',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        transition: 'background 0.2s, border-color 0.2s'
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.8rem' }}>
+                    <span style={{ 
+                      fontSize: '0.75rem', 
+                      background: item.type === 'bug' ? 'rgba(239, 68, 68, 0.15)' : item.type === 'feature' ? 'rgba(59, 130, 246, 0.15)' : item.type === 'praise' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(148, 163, 184, 0.15)',
+                      color: item.type === 'bug' ? '#f87171' : item.type === 'feature' ? '#60a5fa' : item.type === 'praise' ? '#4ade80' : '#cbd5e1',
+                      padding: '0.1rem 0.4rem', 
+                      borderRadius: '4px',
+                      fontWeight: 600
+                    }}>
+                      {item.type.toUpperCase()}
+                    </span>
+                    <span style={{ color: '#fbbf24' }}>
+                      {'★'.repeat(item.rating)}{'☆'.repeat(5 - item.rating)}
+                    </span>
+                  </div>
+                  <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', color: '#cbd5e1', lineHeight: '1.4' }}>
+                    {item.content}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

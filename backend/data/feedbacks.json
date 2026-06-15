@@ -1,0 +1,26 @@
+[
+  {
+    "Id": "822b1a63-c2fc-40d4-b614-51e0cf762555",
+    "Name": "James",
+    "Type": "bug",
+    "Rating": 3,
+    "Content": "My favorite bug is a buttergly.",
+    "Timestamp": "2026-06-15T14:43:34.6328161Z"
+  },
+  {
+    "Id": "preset-1",
+    "Name": "Charlie",
+    "Type": "praise",
+    "Rating": 5,
+    "Content": "Love the new Magenta paint! It makes identifying 3s and 4s so much easier.",
+    "Timestamp": "2026-06-15T09:00:00.000Z"
+  },
+  {
+    "Id": "preset-2",
+    "Name": "MinesweeperPro",
+    "Type": "feature",
+    "Rating": 4,
+    "Content": "The Deluxe Teal paint 5x5 area of effect is awesome. Keep it up!",
+    "Timestamp": "2026-06-14T18:30:00.000Z"
+  }
+]

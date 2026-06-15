@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { type Cell, type GameState, type GameConfig, DIFFICULTIES } from '../types';
 
+const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:5045' : '';
+
 // Initialize an empty board filled with default cells
 const createEmptyBoard = (rows: number, cols: number): Cell[][] => {
   const newBoard: Cell[][] = [];
@@ -56,17 +58,26 @@ export function useMinesweeper() {
   const isFirstClick = useRef(true);
   const timerRef = useRef(0);
 
-  const [highScores, setHighScores] = useState<Record<string, number>>(() => {
-    const stored = localStorage.getItem('minesweeper_high_scores');
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        return {};
+  const [highScores, setHighScores] = useState<Record<string, number>>({});
+
+  const fetchHighScores = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/highscores`);
+      if (response.ok) {
+        const data = await response.json();
+        setHighScores(data);
       }
+    } catch (e) {
+      console.error("Error loading high scores:", e);
     }
-    return {};
-  });
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchHighScores();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     timerRef.current = timer;
@@ -345,12 +356,23 @@ export function useMinesweeper() {
     setHighScores((prev) => {
       const currentBest = prev[config.name];
       if (currentBest === undefined || finalTime < currentBest) {
-        const updated = { ...prev, [config.name]: finalTime };
-        localStorage.setItem('minesweeper_high_scores', JSON.stringify(updated));
-        return updated;
+        return { ...prev, [config.name]: finalTime };
       }
       return prev;
     });
+
+    fetch(`${API_BASE_URL}/api/highscores`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ difficulty: config.name, time: finalTime }),
+    })
+      .then(async (response) => {
+        if (response.ok) {
+          const data = await response.json();
+          setHighScores(data);
+        }
+      })
+      .catch((err) => console.error("Error saving high score to backend:", err));
 
     if (config.name === 'Peaceful' && !hasFailedPeaceful) {
       localStorage.setItem('minesweeper_easy_unlocked', 'true');
@@ -734,6 +756,10 @@ export function useMinesweeper() {
     setHasFailedPeaceful(false);
     setHighScores({});
 
+    fetch(`${API_BASE_URL}/api/highscores`, {
+      method: 'DELETE',
+    }).catch((err) => console.error("Error clearing high scores on backend:", err));
+
     // Reset difficulty if the active one is locked now
     if (config.name === 'Easy' || config.name === 'Easy Bomb Rally' || config.name === 'Pro' || config.name === 'Impossible') {
       resetGame(DIFFICULTIES.Peaceful);
@@ -743,6 +769,10 @@ export function useMinesweeper() {
   const resetHighScores = useCallback(() => {
     localStorage.removeItem('minesweeper_high_scores');
     setHighScores({});
+
+    fetch(`${API_BASE_URL}/api/highscores`, {
+      method: 'DELETE',
+    }).catch((err) => console.error("Error clearing high scores on backend:", err));
   }, []);
 
   return {

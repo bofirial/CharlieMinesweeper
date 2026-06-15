@@ -621,7 +621,7 @@ export const Minesweeper: React.FC = () => {
           🔴 <span>Red Paint</span> flags adjacent mines. 🌀 <span>Teal Paint</span> reveals adjacent 1s and 2s. 🟣 <span>Magenta Paint</span> reveals adjacent 3s and 4s. 🟫 <span>Tan Paint</span> reveals adjacent 5s, 6s, and 7s. 🌈 <span>Rainbow Paint</span> safely reveals/flags all adjacent tiles (none reveals/flags the clicked tile itself).
         </div>
       </div>
-      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+      {isFeedbackOpen && <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />}
     </div>
   );
 };

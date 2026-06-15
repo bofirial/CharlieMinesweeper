@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:5045' : '';
 
 interface FeedbackItem {
   id: string;
@@ -14,39 +16,10 @@ interface FeedbackModalProps {
   onClose: () => void;
 }
 
-const PRESET_FEEDBACKS: FeedbackItem[] = [
-  {
-    id: 'preset-1',
-    name: 'Charlie',
-    type: 'praise',
-    rating: 5,
-    content: 'Love the new Magenta paint! It makes identifying 3s and 4s so much easier.',
-    timestamp: '2026-06-15T09:00:00.000Z',
-  },
-  {
-    id: 'preset-2',
-    name: 'MinesweeperPro',
-    type: 'feature',
-    rating: 4,
-    content: 'The Deluxe Teal paint 5x5 area of effect is awesome. Keep it up!',
-    timestamp: '2026-06-14T18:30:00.000Z',
-  },
-];
+
 
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
-  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>(() => {
-    const stored = localStorage.getItem('minesweeper_feedbacks');
-    if (stored) {
-      try {
-        return JSON.parse(stored) as FeedbackItem[];
-      } catch {
-        return PRESET_FEEDBACKS;
-      }
-    } else {
-      localStorage.setItem('minesweeper_feedbacks', JSON.stringify(PRESET_FEEDBACKS));
-      return PRESET_FEEDBACKS;
-    }
-  });
+  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
   const [name, setName] = useState('');
   const [type, setType] = useState<FeedbackItem['type']>('praise');
   const [rating, setRating] = useState(5);
@@ -54,42 +27,80 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchFeedbacks = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/feedbacks`);
+      if (response.ok) {
+        const data = await response.json();
+        setFeedbacks(data);
+      } else {
+        setError("Failed to load feedbacks.");
+      }
+    } catch {
+      setError("Failed to connect to backend server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        fetchFeedbacks();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
 
     setIsSubmitting(true);
+    setError(null);
 
-    const newItem: FeedbackItem = {
-      id: Date.now().toString(),
+    const newItem = {
       name: name.trim() || 'Anonymous User',
       type,
       rating,
       content: content.trim(),
-      timestamp: new Date().toISOString(),
     };
 
-    setTimeout(() => {
-      const updated = [newItem, ...feedbacks];
-      setFeedbacks(updated);
-      localStorage.setItem('minesweeper_feedbacks', JSON.stringify(updated));
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/feedbacks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newItem),
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+        setName('');
+        setType('praise');
+        setRating(5);
+        setContent('');
+        fetchFeedbacks();
+
+        setTimeout(() => {
+          setSubmitted(false);
+        }, 2500);
+      } else {
+        setError("Failed to submit feedback.");
+      }
+    } catch {
+      setError("Could not submit feedback. Is the backend running?");
+    } finally {
       setIsSubmitting(false);
-      setSubmitted(true);
-
-      // Reset form fields
-      setName('');
-      setType('praise');
-      setRating(5);
-      setContent('');
-
-      // Auto clear success screen after 2.5s
-      setTimeout(() => {
-        setSubmitted(false);
-      }, 2500);
-    }, 800);
+    }
   };
 
   const getEmojiForType = (t: FeedbackItem['type']) => {
@@ -124,6 +135,11 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="feedback-form">
+            {error && (
+              <div style={{ color: '#f87171', background: 'rgba(239, 68, 68, 0.1)', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem', marginBottom: '1rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                ⚠️ {error}
+              </div>
+            )}
             <div className="form-group">
               <label>Name (Optional)</label>
               <input
@@ -192,7 +208,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
         <div className="recent-feedbacks-section">
           <h3>Community Feedbacks</h3>
           <div className="feedback-scroll-list">
-            {feedbacks.length === 0 ? (
+            {loading ? (
+              <div className="empty-feedback">Loading feedbacks...</div>
+            ) : feedbacks.length === 0 ? (
               <div className="empty-feedback">No feedback submitted yet. Be the first!</div>
             ) : (
               feedbacks.map((item) => (

@@ -10,8 +10,8 @@ namespace Backend.Services
         Task SaveFeedbackAsync(FeedbackItem feedback);
         Task DeleteFeedbackAsync(string id);
 
-        Task<Dictionary<string, int>> GetHighScoresAsync();
-        Task<Dictionary<string, int>> SaveHighScoreAsync(string difficulty, int time);
+        Task<Dictionary<string, List<HighScoreEntry>>> GetHighScoresAsync();
+        Task<Dictionary<string, List<HighScoreEntry>>> SaveHighScoreAsync(string playerName, string difficulty, int time);
         Task ClearHighScoresAsync();
     }
 }

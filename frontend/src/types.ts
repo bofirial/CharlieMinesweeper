@@ -156,3 +156,9 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     rainbowPaintBuckets: 1,
   },
 };
+
+export interface HighScoreEntry {
+  playerName: string;
+  time: number;
+  timestamp: string;
+}

@@ -92,7 +92,7 @@ app.MapPost("/api/highscores", async (HighScoreSubmission submission, IStorageSe
         return Results.BadRequest("Invalid high score submission.");
     }
 
-    var updated = await storageService.SaveHighScoreAsync(submission.Difficulty, submission.Time);
+    var updated = await storageService.SaveHighScoreAsync(submission.PlayerName, submission.Difficulty, submission.Time);
     return Results.Ok(updated);
 });
 

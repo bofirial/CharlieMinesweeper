@@ -35,12 +35,15 @@ export const Minesweeper: React.FC = () => {
     isEasyUnlocked,
     resetUnlocks,
     highScores,
+    playerName,
+    setPlayerName,
   } = useMinesweeper();
 
   const [isGridMouseDown, setIsGridMouseDown] = useState(false);
   const [activePaintMode, setActivePaintMode] = useState<'none' | 'red' | 'red-deluxe' | 'teal' | 'teal-deluxe' | 'magenta' | 'magenta-deluxe' | 'tan' | 'tan-deluxe' | 'rainbow' | 'rainbow-deluxe'>('none');
   const [hoveredCell, setHoveredCell] = useState<{ r: number; c: number } | null>(null);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 
   // Helper to pad numbers to 3 digits (e.g. 008, 099, -05)
   const formatNumber = (num: number): string => {
@@ -164,6 +167,19 @@ export const Minesweeper: React.FC = () => {
     <div className="app-container">
       <div className="title-container">
         <h1 className="app-title">Minesweeper</h1>
+      </div>
+
+      <div className="player-panel">
+        <span className="player-icon">👤</span>
+        <input
+          id="playerNameInput"
+          type="text"
+          className="player-name-input"
+          value={playerName}
+          onChange={(e) => setPlayerName(e.target.value)}
+          placeholder="Enter Player Name..."
+          maxLength={20}
+        />
       </div>
 
       <div className="controls-container">
@@ -562,10 +578,16 @@ export const Minesweeper: React.FC = () => {
           </button>
 
           {/* Best Time / High Score Counter */}
-          <div className="display-panel best-time-panel" title="Best Time (High Score)">
+          <div
+            className="display-panel best-time-panel"
+            title="Click to view Top 10 High Scores"
+            onClick={() => setIsLeaderboardOpen(true)}
+          >
             <div className="display-label">BEST</div>
             <div className="display-value">
-              {highScores[config.name] === undefined ? '---' : formatNumber(highScores[config.name])}
+              {highScores[config.name] && highScores[config.name].length > 0
+                ? formatNumber(highScores[config.name][0].time)
+                : '---'}
             </div>
           </div>
 
@@ -622,6 +644,61 @@ export const Minesweeper: React.FC = () => {
         </div>
       </div>
       {isFeedbackOpen && <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />}
+      {isLeaderboardOpen && (
+        <div className="modal-backdrop" onClick={() => setIsLeaderboardOpen(false)}>
+          <div className="leaderboard-modal-card" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close-btn" onClick={() => setIsLeaderboardOpen(false)}>&times;</button>
+            <h2 className="leaderboard-title">Leaderboard</h2>
+            <p className="modal-subtitle">Difficulty: <strong>{config.name}</strong> - Top 10 Fastest Times</p>
+
+            <div className="leaderboard-table-container">
+              {highScores[config.name] && highScores[config.name].length > 0 ? (
+                <table className="leaderboard-table">
+                  <thead>
+                    <tr>
+                      <th className="rank-col">Rank</th>
+                      <th className="name-col">Player</th>
+                      <th className="time-col">Time</th>
+                      <th className="date-col">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {highScores[config.name].map((entry, idx) => {
+                      const dateStr = new Date(entry.timestamp).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      });
+                      const rank = idx + 1;
+                      let rankClass = '';
+                      if (rank === 1) rankClass = 'rank-badge-1';
+                      else if (rank === 2) rankClass = 'rank-badge-2';
+                      else if (rank === 3) rankClass = 'rank-badge-3';
+
+                      return (
+                        <tr key={idx}>
+                          <td className={`rank-col ${rankClass}`}>
+                            {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`}
+                          </td>
+                          <td className="name-col" title={entry.playerName}>
+                            {entry.playerName}
+                          </td>
+                          <td className="time-col">{formatNumber(entry.time)}s</td>
+                          <td className="date-col">{dateStr}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="leaderboard-empty">
+                  No high scores recorded yet.<br />Win the game on this difficulty to set a record!
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

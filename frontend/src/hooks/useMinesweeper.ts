@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { type Cell, type GameState, type GameConfig, DIFFICULTIES } from '../types';
+import { type Cell, type GameState, type GameConfig, DIFFICULTIES, type HighScoreEntry } from '../types';
 
 const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:5045' : '';
 
@@ -58,7 +58,14 @@ export function useMinesweeper() {
   const isFirstClick = useRef(true);
   const timerRef = useRef(0);
 
-  const [highScores, setHighScores] = useState<Record<string, number>>({});
+  const [playerName, setPlayerNameState] = useState(() => localStorage.getItem('minesweeper_player_name') || '');
+
+  const setPlayerName = useCallback((name: string) => {
+    setPlayerNameState(name);
+    localStorage.setItem('minesweeper_player_name', name);
+  }, []);
+
+  const [highScores, setHighScores] = useState<Record<string, HighScoreEntry[]>>({});
 
   const fetchHighScores = async () => {
     try {
@@ -353,18 +360,23 @@ export function useMinesweeper() {
     setGameState('won');
 
     const finalTime = timerRef.current;
+    const activePlayerName = playerName.trim() || 'Anonymous Raider';
+
     setHighScores((prev) => {
-      const currentBest = prev[config.name];
-      if (currentBest === undefined || finalTime < currentBest) {
-        return { ...prev, [config.name]: finalTime };
-      }
-      return prev;
+      const currentList = prev[config.name] || [];
+      const newEntry: HighScoreEntry = {
+        playerName: activePlayerName,
+        time: finalTime,
+        timestamp: new Date().toISOString()
+      };
+      const updatedList = [...currentList, newEntry].sort((a, b) => a.time - b.time).slice(0, 10);
+      return { ...prev, [config.name]: updatedList };
     });
 
     fetch(`${API_BASE_URL}/api/highscores`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ difficulty: config.name, time: finalTime }),
+      body: JSON.stringify({ playerName: activePlayerName, difficulty: config.name, time: finalTime }),
     })
       .then(async (response) => {
         if (response.ok) {
@@ -396,7 +408,7 @@ export function useMinesweeper() {
       }
     }
     setFlagCount(config.mines);
-  }, [config.name, config.rows, config.cols, config.mines, hasFailedPeaceful, setIsEasyUnlocked, setIsProUnlocked, setIsImpossibleUnlocked, setFlagCount]);
+  }, [config.name, config.rows, config.cols, config.mines, hasFailedPeaceful, setIsEasyUnlocked, setIsProUnlocked, setIsImpossibleUnlocked, setFlagCount, playerName]);
 
   // Click handler to reveal a cell
   const revealCell = useCallback((row: number, col: number) => {
@@ -806,5 +818,7 @@ export function useMinesweeper() {
     resetUnlocks,
     highScores,
     resetHighScores,
+    playerName,
+    setPlayerName,
   };
 }

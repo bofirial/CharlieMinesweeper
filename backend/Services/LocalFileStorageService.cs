@@ -66,33 +66,65 @@ namespace Backend.Services
             await File.WriteAllTextAsync(_filePath, json);
         }
 
-        public async Task<Dictionary<string, int>> GetHighScoresAsync()
+        public async Task<Dictionary<string, List<HighScoreEntry>>> GetHighScoresAsync()
         {
             if (!File.Exists(_highScoresPath))
             {
-                return new Dictionary<string, int>();
+                return new Dictionary<string, List<HighScoreEntry>>();
             }
 
             try
             {
                 var json = await File.ReadAllTextAsync(_highScoresPath);
-                return JsonSerializer.Deserialize<Dictionary<string, int>>(json) ?? new Dictionary<string, int>();
+                try
+                {
+                    return JsonSerializer.Deserialize<Dictionary<string, List<HighScoreEntry>>>(json) ?? new Dictionary<string, List<HighScoreEntry>>();
+                }
+                catch
+                {
+                    // Fallback to legacy format Dictionary<string, int>
+                    var legacy = JsonSerializer.Deserialize<Dictionary<string, int>>(json);
+                    var migrated = new Dictionary<string, List<HighScoreEntry>>();
+                    if (legacy != null)
+                    {
+                        foreach (var kvp in legacy)
+                        {
+                            migrated[kvp.Key] = new List<HighScoreEntry>
+                            {
+                                new HighScoreEntry { PlayerName = "Anonymous Raider", Time = kvp.Value, Timestamp = System.DateTime.UtcNow.ToString("o") }
+                            };
+                        }
+                    }
+                    return migrated;
+                }
             }
             catch
             {
-                return new Dictionary<string, int>();
+                return new Dictionary<string, List<HighScoreEntry>>();
             }
         }
 
-        public async Task<Dictionary<string, int>> SaveHighScoreAsync(string difficulty, int time)
+        public async Task<Dictionary<string, List<HighScoreEntry>>> SaveHighScoreAsync(string playerName, string difficulty, int time)
         {
             var scores = await GetHighScoresAsync();
-            if (!scores.TryGetValue(difficulty, out var currentBest) || time < currentBest)
+            if (!scores.TryGetValue(difficulty, out var list))
             {
-                scores[difficulty] = time;
-                var json = JsonSerializer.Serialize(scores, new JsonSerializerOptions { WriteIndented = true });
-                await File.WriteAllTextAsync(_highScoresPath, json);
+                list = new List<HighScoreEntry>();
             }
+
+            var newEntry = new HighScoreEntry
+            {
+                PlayerName = string.IsNullOrWhiteSpace(playerName) ? "Anonymous Raider" : playerName.Trim(),
+                Time = time,
+                Timestamp = System.DateTime.UtcNow.ToString("o")
+            };
+
+            list.Add(newEntry);
+            var updatedList = list.OrderBy(x => x.Time).Take(10).ToList();
+            scores[difficulty] = updatedList;
+
+            var json = JsonSerializer.Serialize(scores, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(_highScoresPath, json);
             return scores;
         }
 

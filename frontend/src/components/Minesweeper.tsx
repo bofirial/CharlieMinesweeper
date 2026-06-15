@@ -27,6 +27,9 @@ export const Minesweeper: React.FC = () => {
     revealTanAdjacentCells,
     tanPaintBucketsRemaining,
     deluxeTanPaintBucketsRemaining,
+    revealRainbowAdjacentCells,
+    rainbowPaintBucketsRemaining,
+    deluxeRainbowPaintBucketsRemaining,
     isImpossibleUnlocked,
     isProUnlocked,
     isEasyUnlocked,
@@ -35,7 +38,7 @@ export const Minesweeper: React.FC = () => {
   } = useMinesweeper();
 
   const [isGridMouseDown, setIsGridMouseDown] = useState(false);
-  const [activePaintMode, setActivePaintMode] = useState<'none' | 'red' | 'red-deluxe' | 'teal' | 'teal-deluxe' | 'magenta' | 'magenta-deluxe' | 'tan' | 'tan-deluxe'>('none');
+  const [activePaintMode, setActivePaintMode] = useState<'none' | 'red' | 'red-deluxe' | 'teal' | 'teal-deluxe' | 'magenta' | 'magenta-deluxe' | 'tan' | 'tan-deluxe' | 'rainbow' | 'rainbow-deluxe'>('none');
   const [hoveredCell, setHoveredCell] = useState<{ r: number; c: number } | null>(null);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
@@ -106,18 +109,26 @@ export const Minesweeper: React.FC = () => {
       revealTanAdjacentCells(row, col, true);
       setActivePaintMode('none');
       setHoveredCell(null);
+    } else if (activePaintMode === 'rainbow') {
+      revealRainbowAdjacentCells(row, col, false);
+      setActivePaintMode('none');
+      setHoveredCell(null);
+    } else if (activePaintMode === 'rainbow-deluxe') {
+      revealRainbowAdjacentCells(row, col, true);
+      setActivePaintMode('none');
+      setHoveredCell(null);
     } else {
       revealCell(row, col);
     }
   };
 
-  const isCellHighlighted = (r: number, c: number): 'none' | 'red' | 'teal' | 'magenta' | 'tan' | 'deluxe' => {
+  const isCellHighlighted = (r: number, c: number): 'none' | 'red' | 'teal' | 'magenta' | 'tan' | 'deluxe' | 'rainbow' => {
     if (activePaintMode === 'none' || !hoveredCell) return 'none';
     const { r: hr, c: hc } = hoveredCell;
     
     let isDeluxe = false;
     let limit = 1;
-    let color: 'red' | 'teal' | 'magenta' | 'tan' = 'red';
+    let color: 'red' | 'teal' | 'magenta' | 'tan' | 'rainbow' = 'red';
     
     if (activePaintMode === 'red') {
       limit = 1; color = 'red';
@@ -135,6 +146,10 @@ export const Minesweeper: React.FC = () => {
       limit = 1; color = 'tan';
     } else if (activePaintMode === 'tan-deluxe') {
       limit = 2; isDeluxe = true; color = 'tan';
+    } else if (activePaintMode === 'rainbow') {
+      limit = 1; color = 'rainbow';
+    } else if (activePaintMode === 'rainbow-deluxe') {
+      limit = 2; isDeluxe = true; color = 'rainbow';
     }
     
     const isNeighbor = Math.abs(r - hr) <= limit && Math.abs(c - hc) <= limit;
@@ -438,6 +453,90 @@ export const Minesweeper: React.FC = () => {
           </svg>
           <span>Deluxe Tan Paint ({formatPaintCount(deluxeTanPaintBucketsRemaining)})</span>
         </button>
+
+        {/* Rainbow Paint Bucket */}
+        <button
+          className={`tool-btn paint-bucket-btn rainbow-paint ${activePaintMode === 'rainbow' ? 'active' : ''}`}
+          onClick={() => setActivePaintMode(activePaintMode === 'rainbow' ? 'none' : 'rainbow')}
+          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || rainbowPaintBucketsRemaining <= 0}
+          title={
+            gameState === 'idle'
+              ? "Rainbow Paint Bucket: Click a tile to start the game before using this tool"
+              : rainbowPaintBucketsRemaining <= 0
+              ? "Rainbow Paint Bucket: No uses remaining"
+              : `Rainbow Paint Bucket: Safely reveal all adjacent tiles (flags mines, reveals numbers). (${formatPaintCount(rainbowPaintBucketsRemaining)} remaining)`
+          }
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="paint-bucket-svg"
+          >
+            <defs>
+              <linearGradient id="rainbow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ef4444" />
+                <stop offset="20%" stopColor="#f97316" />
+                <stop offset="40%" stopColor="#eab308" />
+                <stop offset="60%" stopColor="#22c55e" />
+                <stop offset="80%" stopColor="#3b82f6" />
+                <stop offset="100%" stopColor="#a855f7" />
+              </linearGradient>
+            </defs>
+            <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={rainbowPaintBucketsRemaining <= 0 ? "#475569" : "url(#rainbow-grad)"} />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={rainbowPaintBucketsRemaining <= 0 ? "#475569" : "url(#rainbow-grad)"} />
+          </svg>
+          <span>Rainbow Paint ({formatPaintCount(rainbowPaintBucketsRemaining)})</span>
+        </button>
+
+        {/* Deluxe Rainbow Paint Bucket */}
+        <button
+          className={`tool-btn paint-bucket-btn rainbow-paint deluxe ${activePaintMode === 'rainbow-deluxe' ? 'active' : ''}`}
+          onClick={() => setActivePaintMode(activePaintMode === 'rainbow-deluxe' ? 'none' : 'rainbow-deluxe')}
+          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || deluxeRainbowPaintBucketsRemaining <= 0}
+          title={
+            gameState === 'idle'
+              ? "Deluxe Rainbow Paint Bucket: Click a tile to start the game before using this tool"
+              : deluxeRainbowPaintBucketsRemaining <= 0
+              ? "Deluxe Rainbow Paint Bucket: No uses remaining"
+              : `Deluxe Rainbow Paint Bucket: Safely reveal all adjacent tiles in a 5x5 area. (${formatPaintCount(deluxeRainbowPaintBucketsRemaining)} remaining)`
+          }
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="paint-bucket-svg"
+          >
+            <defs>
+              <linearGradient id="rainbow-grad-deluxe" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ef4444" />
+                <stop offset="20%" stopColor="#f97316" />
+                <stop offset="40%" stopColor="#eab308" />
+                <stop offset="60%" stopColor="#22c55e" />
+                <stop offset="80%" stopColor="#3b82f6" />
+                <stop offset="100%" stopColor="#a855f7" />
+              </linearGradient>
+            </defs>
+            <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" stroke="#fbbf24" />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={deluxeRainbowPaintBucketsRemaining <= 0 ? "#475569" : "url(#rainbow-grad-deluxe)"} stroke="#fbbf24" />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={deluxeRainbowPaintBucketsRemaining <= 0 ? "#475569" : "url(#rainbow-grad-deluxe)"} stroke="#fbbf24" />
+          </svg>
+          <span>Deluxe Rainbow Paint ({formatPaintCount(deluxeRainbowPaintBucketsRemaining)})</span>
+        </button>
       </div>
 
       <div className={`game-cabinet ${gameState}`}>
@@ -519,7 +618,7 @@ export const Minesweeper: React.FC = () => {
           📱 <span>Tap</span> to reveal. <span>Long-Press</span> to flag. <span>Double-Tap</span> a revealed number to Chord.
         </div>
         <div>
-          🔴 <span>Red Paint</span> flags adjacent mines. 🌀 <span>Teal Paint</span> reveals adjacent 1s and 2s. 🟣 <span>Magenta Paint</span> reveals adjacent 3s and 4s. 🟫 <span>Tan Paint</span> reveals adjacent 5s, 6s, and 7s (none reveals/flags the clicked tile itself).
+          🔴 <span>Red Paint</span> flags adjacent mines. 🌀 <span>Teal Paint</span> reveals adjacent 1s and 2s. 🟣 <span>Magenta Paint</span> reveals adjacent 3s and 4s. 🟫 <span>Tan Paint</span> reveals adjacent 5s, 6s, and 7s. 🌈 <span>Rainbow Paint</span> safely reveals/flags all adjacent tiles (none reveals/flags the clicked tile itself).
         </div>
       </div>
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />

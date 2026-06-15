@@ -37,6 +37,8 @@ export function useMinesweeper() {
   const [deluxeMagentaPaintBucketsRemaining, setDeluxeMagentaPaintBucketsRemaining] = useState(DIFFICULTIES.Peaceful.magentaPaintBuckets);
   const [tanPaintBucketsRemaining, setTanPaintBucketsRemaining] = useState(DIFFICULTIES.Peaceful.tanPaintBuckets);
   const [deluxeTanPaintBucketsRemaining, setDeluxeTanPaintBucketsRemaining] = useState(DIFFICULTIES.Peaceful.tanPaintBuckets);
+  const [rainbowPaintBucketsRemaining, setRainbowPaintBucketsRemaining] = useState(DIFFICULTIES.Peaceful.rainbowPaintBuckets);
+  const [deluxeRainbowPaintBucketsRemaining, setDeluxeRainbowPaintBucketsRemaining] = useState(0);
   const [isImpossibleUnlocked, setIsImpossibleUnlocked] = useState(() => {
     return localStorage.getItem('minesweeper_impossible_unlocked') === 'true';
   });
@@ -140,6 +142,18 @@ export function useMinesweeper() {
     setDeluxeMagentaPaintBucketsRemaining(deluxeMagenta);
     setTanPaintBucketsRemaining(normalTan);
     setDeluxeTanPaintBucketsRemaining(deluxeTan);
+    let normalRainbow = 0, deluxeRainbow = 0;
+    if (activeConfig.name === 'Peaceful' || activeConfig.name === 'Super Easy') {
+      normalRainbow = activeConfig.rainbowPaintBuckets;
+      deluxeRainbow = 0;
+    } else {
+      for (let i = 0; i < activeConfig.rainbowPaintBuckets; i++) {
+        if (Math.random() < 0.1) deluxeRainbow++;
+        else normalRainbow++;
+      }
+    }
+    setRainbowPaintBucketsRemaining(normalRainbow);
+    setDeluxeRainbowPaintBucketsRemaining(deluxeRainbow);
 
     isFirstClick.current = true;
   }, [config]);
@@ -649,6 +663,63 @@ export function useMinesweeper() {
     }
   }, [board, gameState, tanPaintBucketsRemaining, deluxeTanPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin]);
 
+  // Rainbow paint revealing tool: flags all adjacent mines and reveals all adjacent safe cells in a 3x3 (normal) or 5x5 (deluxe) area safely
+  const revealRainbowAdjacentCells = useCallback((row: number, col: number, isDeluxe: boolean) => {
+    const bucketsRemaining = isDeluxe ? deluxeRainbowPaintBucketsRemaining : rainbowPaintBucketsRemaining;
+    if (gameState === 'won' || gameState === 'lost' || bucketsRemaining <= 0) return;
+
+    let currentBoard = JSON.parse(JSON.stringify(board)) as Cell[][];
+
+    // If first click, initialize the board first
+    if (isFirstClick.current) {
+      isFirstClick.current = false;
+      currentBoard = initializeMinesAndNeighbors(currentBoard, row, col);
+      setGameState('playing');
+    }
+
+    const adjacents = isDeluxe
+      ? getNeighbors5x5(row, col, config.rows, config.cols)
+      : getNeighbors(row, col, config.rows, config.cols);
+    let flagsAdded = 0;
+
+    for (const adj of adjacents) {
+      const neighbor = currentBoard[adj.r][adj.c];
+      if (!neighbor.isRevealed) {
+        if (neighbor.isMine) {
+          if (!neighbor.isFlagged) {
+            neighbor.isFlagged = true;
+            flagsAdded++;
+          }
+        } else {
+          if (neighbor.isFlagged) {
+            neighbor.isFlagged = false;
+            flagsAdded--;
+          }
+          if (neighbor.neighborMines === 0) {
+            revealEmptyCells(currentBoard, adj.r, adj.c);
+          } else {
+            neighbor.isRevealed = true;
+          }
+        }
+      }
+    }
+
+    if (flagsAdded !== 0) {
+      setFlagCount((f) => f + flagsAdded);
+    }
+
+    if (checkWinCondition(currentBoard)) {
+      handleWin(currentBoard);
+    }
+
+    setBoard(currentBoard);
+    if (isDeluxe) {
+      setDeluxeRainbowPaintBucketsRemaining((p) => p - 1);
+    } else {
+      setRainbowPaintBucketsRemaining((p) => p - 1);
+    }
+  }, [board, gameState, rainbowPaintBucketsRemaining, deluxeRainbowPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, revealEmptyCells, checkWinCondition, handleWin, setFlagCount]);
+
 
 
   const resetUnlocks = useCallback(() => {
@@ -696,6 +767,9 @@ export function useMinesweeper() {
     revealTanAdjacentCells,
     tanPaintBucketsRemaining,
     deluxeTanPaintBucketsRemaining,
+    revealRainbowAdjacentCells,
+    rainbowPaintBucketsRemaining,
+    deluxeRainbowPaintBucketsRemaining,
     isImpossibleUnlocked,
     isProUnlocked,
     isEasyUnlocked,

@@ -19,6 +19,7 @@ export interface GameConfig {
   tealPaintBuckets: number;
   magentaPaintBuckets: number;
   tanPaintBuckets: number;
+  rainbowPaintBuckets: number;
 }
 
 export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameConfig> = {
@@ -31,6 +32,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tealPaintBuckets: Infinity,
     magentaPaintBuckets: Infinity,
     tanPaintBuckets: Infinity,
+    rainbowPaintBuckets: 1,
   },
   'Super Easy': {
     rows: 3,
@@ -41,6 +43,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tealPaintBuckets: Infinity,
     magentaPaintBuckets: Infinity,
     tanPaintBuckets: Infinity,
+    rainbowPaintBuckets: 1,
   },
   Easy: {
     rows: 7,
@@ -51,6 +54,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tealPaintBuckets: 100,
     magentaPaintBuckets: 100,
     tanPaintBuckets: 100,
+    rainbowPaintBuckets: 1,
   },
   'Easy Bomb Rally': {
     rows: 7,
@@ -61,6 +65,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tealPaintBuckets: 100,
     magentaPaintBuckets: 100,
     tanPaintBuckets: 100,
+    rainbowPaintBuckets: 1,
   },
   Beginner: {
     rows: 9,
@@ -71,6 +76,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tealPaintBuckets: 1,
     magentaPaintBuckets: 1,
     tanPaintBuckets: 1,
+    rainbowPaintBuckets: 1,
   },
   'Bomb Rally': {
     rows: 9,
@@ -81,6 +87,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tealPaintBuckets: 1,
     magentaPaintBuckets: 1,
     tanPaintBuckets: 1,
+    rainbowPaintBuckets: 1,
   },
   Intermediate: {
     rows: 16,
@@ -91,6 +98,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tealPaintBuckets: 3,
     magentaPaintBuckets: 3,
     tanPaintBuckets: 2,
+    rainbowPaintBuckets: 1,
   },
   'Medium Bomb Rally': {
     rows: 16,
@@ -101,6 +109,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tealPaintBuckets: 3,
     magentaPaintBuckets: 3,
     tanPaintBuckets: 2,
+    rainbowPaintBuckets: 1,
   },
   Expert: {
     rows: 16,
@@ -111,6 +120,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tealPaintBuckets: 5,
     magentaPaintBuckets: 5,
     tanPaintBuckets: 3,
+    rainbowPaintBuckets: 1,
   },
   Pro: {
     rows: 18,
@@ -121,6 +131,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tealPaintBuckets: 6,
     magentaPaintBuckets: 6,
     tanPaintBuckets: 4,
+    rainbowPaintBuckets: 1,
   },
   Master: {
     rows: 20,
@@ -131,6 +142,7 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tealPaintBuckets: 7,
     magentaPaintBuckets: 7,
     tanPaintBuckets: 4,
+    rainbowPaintBuckets: 1,
   },
   Impossible: {
     rows: 24,
@@ -141,5 +153,6 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tealPaintBuckets: 0,
     magentaPaintBuckets: 0,
     tanPaintBuckets: 0,
+    rainbowPaintBuckets: 1,
   },
 };

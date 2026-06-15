@@ -12,5 +12,19 @@
       "Time": 0,
       "Timestamp": "2026-06-15T15:25:15.6023108Z"
     }
+  ],
+  "Easy": [
+    {
+      "PlayerName": "charlie",
+      "Time": 29,
+      "Timestamp": "2026-06-15T15:31:52.8405775Z"
+    }
+  ],
+  "Easy Bomb Rally": [
+    {
+      "PlayerName": "charlie",
+      "Time": 37,
+      "Timestamp": "2026-06-15T15:38:15.5729324Z"
+    }
   ]
 }

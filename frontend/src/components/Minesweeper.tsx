@@ -580,7 +580,11 @@ export const Minesweeper: React.FC = () => {
           {/* Best Time / High Score Counter */}
           <div
             className="display-panel best-time-panel"
-            title="Click to view Top 10 High Scores"
+            title={
+              highScores[config.name] && highScores[config.name].length > 0
+                ? `Best Time: ${highScores[config.name][0].time}s set by ${highScores[config.name][0].playerName}. Click to view Top 10.`
+                : "Click to view Top 10 High Scores"
+            }
             onClick={() => setIsLeaderboardOpen(true)}
           >
             <div className="display-label">BEST</div>

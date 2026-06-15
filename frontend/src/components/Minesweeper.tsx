@@ -24,14 +24,18 @@ export const Minesweeper: React.FC = () => {
     revealMagentaAdjacentCells,
     magentaPaintBucketsRemaining,
     deluxeMagentaPaintBucketsRemaining,
+    revealTanAdjacentCells,
+    tanPaintBucketsRemaining,
+    deluxeTanPaintBucketsRemaining,
     isImpossibleUnlocked,
     isProUnlocked,
     isEasyUnlocked,
     resetUnlocks,
+    highScores,
   } = useMinesweeper();
 
   const [isGridMouseDown, setIsGridMouseDown] = useState(false);
-  const [activePaintMode, setActivePaintMode] = useState<'none' | 'red' | 'red-deluxe' | 'teal' | 'teal-deluxe' | 'magenta' | 'magenta-deluxe'>('none');
+  const [activePaintMode, setActivePaintMode] = useState<'none' | 'red' | 'red-deluxe' | 'teal' | 'teal-deluxe' | 'magenta' | 'magenta-deluxe' | 'tan' | 'tan-deluxe'>('none');
   const [hoveredCell, setHoveredCell] = useState<{ r: number; c: number } | null>(null);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
@@ -94,18 +98,26 @@ export const Minesweeper: React.FC = () => {
       revealMagentaAdjacentCells(row, col, true);
       setActivePaintMode('none');
       setHoveredCell(null);
+    } else if (activePaintMode === 'tan') {
+      revealTanAdjacentCells(row, col, false);
+      setActivePaintMode('none');
+      setHoveredCell(null);
+    } else if (activePaintMode === 'tan-deluxe') {
+      revealTanAdjacentCells(row, col, true);
+      setActivePaintMode('none');
+      setHoveredCell(null);
     } else {
       revealCell(row, col);
     }
   };
 
-  const isCellHighlighted = (r: number, c: number): 'none' | 'red' | 'teal' | 'magenta' | 'deluxe' => {
+  const isCellHighlighted = (r: number, c: number): 'none' | 'red' | 'teal' | 'magenta' | 'tan' | 'deluxe' => {
     if (activePaintMode === 'none' || !hoveredCell) return 'none';
     const { r: hr, c: hc } = hoveredCell;
     
     let isDeluxe = false;
     let limit = 1;
-    let color: 'red' | 'teal' | 'magenta' = 'red';
+    let color: 'red' | 'teal' | 'magenta' | 'tan' = 'red';
     
     if (activePaintMode === 'red') {
       limit = 1; color = 'red';
@@ -119,6 +131,10 @@ export const Minesweeper: React.FC = () => {
       limit = 1; color = 'magenta';
     } else if (activePaintMode === 'magenta-deluxe') {
       limit = 2; isDeluxe = true; color = 'magenta';
+    } else if (activePaintMode === 'tan') {
+      limit = 1; color = 'tan';
+    } else if (activePaintMode === 'tan-deluxe') {
+      limit = 2; isDeluxe = true; color = 'tan';
     }
     
     const isNeighbor = Math.abs(r - hr) <= limit && Math.abs(c - hc) <= limit;
@@ -358,6 +374,70 @@ export const Minesweeper: React.FC = () => {
           </svg>
           <span>Deluxe Magenta Paint ({formatPaintCount(deluxeMagentaPaintBucketsRemaining)})</span>
         </button>
+
+        {/* Tan Paint Bucket */}
+        <button
+          className={`tool-btn paint-bucket-btn tan-paint ${activePaintMode === 'tan' ? 'active' : ''}`}
+          onClick={() => setActivePaintMode(activePaintMode === 'tan' ? 'none' : 'tan')}
+          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || tanPaintBucketsRemaining <= 0}
+          title={
+            gameState === 'idle'
+              ? "Tan Paint Bucket: Click a tile to start the game before using this tool"
+              : tanPaintBucketsRemaining <= 0
+              ? "Tan Paint Bucket: No uses remaining"
+              : `Tan Paint Bucket: Reveal adjacent 5s, 6s, and 7s in a 3x3 area. (${formatPaintCount(tanPaintBucketsRemaining)} remaining)`
+          }
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="paint-bucket-svg"
+          >
+            <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={tanPaintBucketsRemaining <= 0 ? "#475569" : "#d2b48c"} />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={tanPaintBucketsRemaining <= 0 ? "#475569" : "#d2b48c"} />
+          </svg>
+          <span>Tan Paint ({formatPaintCount(tanPaintBucketsRemaining)})</span>
+        </button>
+
+        {/* Deluxe Tan Paint Bucket */}
+        <button
+          className={`tool-btn paint-bucket-btn tan-paint deluxe ${activePaintMode === 'tan-deluxe' ? 'active' : ''}`}
+          onClick={() => setActivePaintMode(activePaintMode === 'tan-deluxe' ? 'none' : 'tan-deluxe')}
+          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || deluxeTanPaintBucketsRemaining <= 0}
+          title={
+            gameState === 'idle'
+              ? "Deluxe Tan Paint Bucket: Click a tile to start the game before using this tool"
+              : deluxeTanPaintBucketsRemaining <= 0
+              ? "Deluxe Tan Paint Bucket: No uses remaining"
+              : `Deluxe Tan Paint Bucket: Reveal adjacent 5s, 6s, and 7s in a 5x5 area. (${formatPaintCount(deluxeTanPaintBucketsRemaining)} remaining)`
+          }
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="paint-bucket-svg"
+          >
+            <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={deluxeTanPaintBucketsRemaining <= 0 ? "#475569" : "#fbbf24"} />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={deluxeTanPaintBucketsRemaining <= 0 ? "#475569" : "#fbbf24"} />
+          </svg>
+          <span>Deluxe Tan Paint ({formatPaintCount(deluxeTanPaintBucketsRemaining)})</span>
+        </button>
       </div>
 
       <div className={`game-cabinet ${gameState}`}>
@@ -381,6 +461,14 @@ export const Minesweeper: React.FC = () => {
           >
             <span className="face-emoji">{getFaceEmoji()}</span>
           </button>
+
+          {/* Best Time / High Score Counter */}
+          <div className="display-panel best-time-panel" title="Best Time (High Score)">
+            <div className="display-label">BEST</div>
+            <div className="display-value">
+              {highScores[config.name] === undefined ? '---' : formatNumber(highScores[config.name])}
+            </div>
+          </div>
 
           {/* Digital Timer */}
           <div className="display-panel" title="Time Elapsed">
@@ -431,7 +519,7 @@ export const Minesweeper: React.FC = () => {
           📱 <span>Tap</span> to reveal. <span>Long-Press</span> to flag. <span>Double-Tap</span> a revealed number to Chord.
         </div>
         <div>
-          🔴 <span>Red Paint</span> flags adjacent mines. 🌀 <span>Teal Paint</span> reveals adjacent 1s and 2s. 🟣 <span>Magenta Paint</span> reveals adjacent 3s and 4s (none reveals/flags the clicked tile itself).
+          🔴 <span>Red Paint</span> flags adjacent mines. 🌀 <span>Teal Paint</span> reveals adjacent 1s and 2s. 🟣 <span>Magenta Paint</span> reveals adjacent 3s and 4s. 🟫 <span>Tan Paint</span> reveals adjacent 5s, 6s, and 7s (none reveals/flags the clicked tile itself).
         </div>
       </div>
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />

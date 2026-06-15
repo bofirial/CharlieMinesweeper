@@ -6,7 +6,7 @@ interface CellProps {
   onClick: () => void;
   onFlag: () => void;
   onChord: () => void;
-  isPaintHighlighted?: 'none' | 'red' | 'teal' | 'magenta' | 'deluxe';
+  isPaintHighlighted?: 'none' | 'red' | 'teal' | 'magenta' | 'tan' | 'deluxe';
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
 }
@@ -72,6 +72,8 @@ export const Cell: React.FC<CellProps> = React.memo(({
       cellClass += ' paint-highlighted-teal';
     } else if (isPaintHighlighted === 'magenta') {
       cellClass += ' paint-highlighted-magenta';
+    } else if (isPaintHighlighted === 'tan') {
+      cellClass += ' paint-highlighted-tan';
     } else if (isPaintHighlighted === 'deluxe') {
       cellClass += ' paint-highlighted-deluxe';
     }

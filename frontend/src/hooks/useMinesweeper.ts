@@ -35,6 +35,8 @@ export function useMinesweeper() {
   const [deluxeTealPaintBucketsRemaining, setDeluxeTealPaintBucketsRemaining] = useState(DIFFICULTIES.Peaceful.tealPaintBuckets);
   const [magentaPaintBucketsRemaining, setMagentaPaintBucketsRemaining] = useState(DIFFICULTIES.Peaceful.magentaPaintBuckets);
   const [deluxeMagentaPaintBucketsRemaining, setDeluxeMagentaPaintBucketsRemaining] = useState(DIFFICULTIES.Peaceful.magentaPaintBuckets);
+  const [tanPaintBucketsRemaining, setTanPaintBucketsRemaining] = useState(DIFFICULTIES.Peaceful.tanPaintBuckets);
+  const [deluxeTanPaintBucketsRemaining, setDeluxeTanPaintBucketsRemaining] = useState(DIFFICULTIES.Peaceful.tanPaintBuckets);
   const [isImpossibleUnlocked, setIsImpossibleUnlocked] = useState(() => {
     return localStorage.getItem('minesweeper_impossible_unlocked') === 'true';
   });
@@ -50,6 +52,23 @@ export function useMinesweeper() {
 
   const timerId = useRef<ReturnType<typeof setInterval> | null>(null);
   const isFirstClick = useRef(true);
+  const timerRef = useRef(0);
+
+  const [highScores, setHighScores] = useState<Record<string, number>>(() => {
+    const stored = localStorage.getItem('minesweeper_high_scores');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  });
+
+  useEffect(() => {
+    timerRef.current = timer;
+  }, [timer]);
 
   // Reset the game state
   const resetGame = useCallback((newConfig?: GameConfig) => {
@@ -72,7 +91,7 @@ export function useMinesweeper() {
     let normalRed = 0, deluxeRed = 0;
     if (activeConfig.redPaintBuckets === Infinity) {
       normalRed = Infinity;
-      deluxeRed = activeConfig.name === 'Peaceful' ? 0 : Infinity;
+      deluxeRed = (activeConfig.name === 'Peaceful' || activeConfig.name === 'Super Easy') ? 0 : Infinity;
     } else {
       for (let i = 0; i < activeConfig.redPaintBuckets; i++) {
         if (Math.random() < 0.1) deluxeRed++;
@@ -83,7 +102,7 @@ export function useMinesweeper() {
     let normalTeal = 0, deluxeTeal = 0;
     if (activeConfig.tealPaintBuckets === Infinity) {
       normalTeal = Infinity;
-      deluxeTeal = activeConfig.name === 'Peaceful' ? 0 : Infinity;
+      deluxeTeal = (activeConfig.name === 'Peaceful' || activeConfig.name === 'Super Easy') ? 0 : Infinity;
     } else {
       for (let i = 0; i < activeConfig.tealPaintBuckets; i++) {
         if (Math.random() < 0.1) deluxeTeal++;
@@ -94,11 +113,22 @@ export function useMinesweeper() {
     let normalMagenta = 0, deluxeMagenta = 0;
     if (activeConfig.magentaPaintBuckets === Infinity) {
       normalMagenta = Infinity;
-      deluxeMagenta = activeConfig.name === 'Peaceful' ? 0 : Infinity;
+      deluxeMagenta = (activeConfig.name === 'Peaceful' || activeConfig.name === 'Super Easy') ? 0 : Infinity;
     } else {
       for (let i = 0; i < activeConfig.magentaPaintBuckets; i++) {
         if (Math.random() < 0.1) deluxeMagenta++;
         else normalMagenta++;
+      }
+    }
+
+    let normalTan = 0, deluxeTan = 0;
+    if (activeConfig.tanPaintBuckets === Infinity) {
+      normalTan = Infinity;
+      deluxeTan = (activeConfig.name === 'Peaceful' || activeConfig.name === 'Super Easy') ? 0 : Infinity;
+    } else {
+      for (let i = 0; i < activeConfig.tanPaintBuckets; i++) {
+        if (Math.random() < 0.1) deluxeTan++;
+        else normalTan++;
       }
     }
 
@@ -108,6 +138,8 @@ export function useMinesweeper() {
     setDeluxeTealPaintBucketsRemaining(deluxeTeal);
     setMagentaPaintBucketsRemaining(normalMagenta);
     setDeluxeMagentaPaintBucketsRemaining(deluxeMagenta);
+    setTanPaintBucketsRemaining(normalTan);
+    setDeluxeTanPaintBucketsRemaining(deluxeTan);
 
     isFirstClick.current = true;
   }, [config]);
@@ -197,9 +229,14 @@ export function useMinesweeper() {
       // Classic rule: First clicked cell and its 8 neighbors are always safe.
       const safeZone = new Set<string>();
       safeZone.add(`${startRow},${startCol}`);
-      getNeighbors(startRow, startCol, rows, cols).forEach((n) => {
-        safeZone.add(`${n.r},${n.c}`);
-      });
+      
+      const neighbors = getNeighbors(startRow, startCol, rows, cols);
+      // Only make neighbors safe if we have enough space remaining to place all mines
+      if ((rows * cols) - 1 - neighbors.length > mines) {
+        neighbors.forEach((n) => {
+          safeZone.add(`${n.r},${n.c}`);
+        });
+      }
 
       // Randomly place mines
       let minesPlaced = 0;
@@ -285,6 +322,46 @@ export function useMinesweeper() {
     }
   }, [getNeighbors, config.rows, config.cols]);
 
+
+  // Central win condition helper to track best time/high score and unlocks
+  const handleWin = useCallback((currentBoard: Cell[][]) => {
+    setGameState('won');
+
+    const finalTime = timerRef.current;
+    setHighScores((prev) => {
+      const currentBest = prev[config.name];
+      if (currentBest === undefined || finalTime < currentBest) {
+        const updated = { ...prev, [config.name]: finalTime };
+        localStorage.setItem('minesweeper_high_scores', JSON.stringify(updated));
+        return updated;
+      }
+      return prev;
+    });
+
+    if (config.name === 'Peaceful' && !hasFailedPeaceful) {
+      localStorage.setItem('minesweeper_easy_unlocked', 'true');
+      setIsEasyUnlocked(true);
+    }
+    if (config.name === 'Master') {
+      localStorage.setItem('minesweeper_impossible_unlocked', 'true');
+      setIsImpossibleUnlocked(true);
+    }
+    if (config.name === 'Expert') {
+      localStorage.setItem('minesweeper_pro_unlocked', 'true');
+      setIsProUnlocked(true);
+    }
+
+    // Auto-flag all remaining unrevealed mines
+    for (let r = 0; r < config.rows; r++) {
+      for (let c = 0; c < config.cols; c++) {
+        if (currentBoard[r][c].isMine) {
+          currentBoard[r][c].isFlagged = true;
+        }
+      }
+    }
+    setFlagCount(config.mines);
+  }, [config.name, config.rows, config.cols, config.mines, hasFailedPeaceful, setIsEasyUnlocked, setIsProUnlocked, setIsImpossibleUnlocked, setFlagCount]);
+
   // Click handler to reveal a cell
   const revealCell = useCallback((row: number, col: number) => {
     if (gameState === 'won' || gameState === 'lost') return;
@@ -330,32 +407,11 @@ export function useMinesweeper() {
 
     // Check win condition
     if (checkWinCondition(currentBoard)) {
-      setGameState('won');
-      if (config.name === 'Peaceful' && !hasFailedPeaceful) {
-        localStorage.setItem('minesweeper_easy_unlocked', 'true');
-        setIsEasyUnlocked(true);
-      }
-      if (config.name === 'Master') {
-        localStorage.setItem('minesweeper_impossible_unlocked', 'true');
-        setIsImpossibleUnlocked(true);
-      }
-      if (config.name === 'Expert') {
-        localStorage.setItem('minesweeper_pro_unlocked', 'true');
-        setIsProUnlocked(true);
-      }
-      // Auto-flag all remaining unrevealed mines
-      for (let r = 0; r < config.rows; r++) {
-        for (let c = 0; c < config.cols; c++) {
-          if (currentBoard[r][c].isMine) {
-            currentBoard[r][c].isFlagged = true;
-          }
-        }
-      }
-      setFlagCount(config.mines);
+      handleWin(currentBoard);
     }
 
     setBoard(currentBoard);
-  }, [board, gameState, config, initializeMinesAndNeighbors, checkWinCondition, revealEmptyCells, hasFailedPeaceful]);
+  }, [board, gameState, config, initializeMinesAndNeighbors, checkWinCondition, revealEmptyCells, handleWin]);
 
   // Right-click handler to toggle flags
   const toggleFlag = useCallback((row: number, col: number) => {
@@ -428,33 +484,12 @@ export function useMinesweeper() {
           }
         }
       } else if (checkWinCondition(currentBoard)) {
-        setGameState('won');
-        if (config.name === 'Peaceful' && !hasFailedPeaceful) {
-          localStorage.setItem('minesweeper_easy_unlocked', 'true');
-          setIsEasyUnlocked(true);
-        }
-        if (config.name === 'Master') {
-          localStorage.setItem('minesweeper_impossible_unlocked', 'true');
-          setIsImpossibleUnlocked(true);
-        }
-        if (config.name === 'Expert') {
-          localStorage.setItem('minesweeper_pro_unlocked', 'true');
-          setIsProUnlocked(true);
-        }
-        // Auto-flag remaining
-        for (let r = 0; r < config.rows; r++) {
-          for (let c = 0; c < config.cols; c++) {
-            if (currentBoard[r][c].isMine) {
-              currentBoard[r][c].isFlagged = true;
-            }
-          }
-        }
-        setFlagCount(config.mines);
+        handleWin(currentBoard);
       }
 
       setBoard(currentBoard);
     }
-  }, [board, gameState, config, getNeighbors, checkWinCondition, revealEmptyCells, hasFailedPeaceful]);
+  }, [board, gameState, config, getNeighbors, checkWinCondition, revealEmptyCells, handleWin]);
 
   // Paint flags on all unrevealed neighbors of (row, col)
   const paintFlags = useCallback((row: number, col: number, isDeluxe: boolean) => {
@@ -523,28 +558,7 @@ export function useMinesweeper() {
     }
 
     if (checkWinCondition(currentBoard)) {
-      setGameState('won');
-      if (config.name === 'Peaceful' && !hasFailedPeaceful) {
-        localStorage.setItem('minesweeper_easy_unlocked', 'true');
-        setIsEasyUnlocked(true);
-      }
-      if (config.name === 'Master') {
-        localStorage.setItem('minesweeper_impossible_unlocked', 'true');
-        setIsImpossibleUnlocked(true);
-      }
-      if (config.name === 'Expert') {
-        localStorage.setItem('minesweeper_pro_unlocked', 'true');
-        setIsProUnlocked(true);
-      }
-      // Auto-flag remaining mines
-      for (let r = 0; r < config.rows; r++) {
-        for (let c = 0; c < config.cols; c++) {
-          if (currentBoard[r][c].isMine) {
-            currentBoard[r][c].isFlagged = true;
-          }
-        }
-      }
-      setFlagCount(config.mines);
+      handleWin(currentBoard);
     }
 
     setBoard(currentBoard);
@@ -553,7 +567,7 @@ export function useMinesweeper() {
     } else {
       setTealPaintBucketsRemaining((p) => p - 1);
     }
-  }, [board, gameState, tealPaintBucketsRemaining, deluxeTealPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, hasFailedPeaceful]);
+  }, [board, gameState, tealPaintBucketsRemaining, deluxeTealPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin]);
 
   // Paint bucket revealing tool: reveals all adjacent unrevealed, unflagged tiles of (row, col)
   // that have exactly 3 or 4 adjacent mines.
@@ -584,28 +598,7 @@ export function useMinesweeper() {
     }
 
     if (checkWinCondition(currentBoard)) {
-      setGameState('won');
-      if (config.name === 'Peaceful' && !hasFailedPeaceful) {
-        localStorage.setItem('minesweeper_easy_unlocked', 'true');
-        setIsEasyUnlocked(true);
-      }
-      if (config.name === 'Master') {
-        localStorage.setItem('minesweeper_impossible_unlocked', 'true');
-        setIsImpossibleUnlocked(true);
-      }
-      if (config.name === 'Expert') {
-        localStorage.setItem('minesweeper_pro_unlocked', 'true');
-        setIsProUnlocked(true);
-      }
-      // Auto-flag remaining mines
-      for (let r = 0; r < config.rows; r++) {
-        for (let c = 0; c < config.cols; c++) {
-          if (currentBoard[r][c].isMine) {
-            currentBoard[r][c].isFlagged = true;
-          }
-        }
-      }
-      setFlagCount(config.mines);
+      handleWin(currentBoard);
     }
 
     setBoard(currentBoard);
@@ -614,7 +607,47 @@ export function useMinesweeper() {
     } else {
       setMagentaPaintBucketsRemaining((p) => p - 1);
     }
-  }, [board, gameState, magentaPaintBucketsRemaining, deluxeMagentaPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, hasFailedPeaceful]);
+  }, [board, gameState, magentaPaintBucketsRemaining, deluxeMagentaPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin]);
+
+  // Paint bucket revealing tool: reveals all adjacent unrevealed, unflagged tiles of (row, col)
+  // that have exactly 5, 6, or 7 adjacent mines.
+  // Safely skips revealing adjacent mines so they do not detonate!
+  const revealTanAdjacentCells = useCallback((row: number, col: number, isDeluxe: boolean) => {
+    const bucketsRemaining = isDeluxe ? deluxeTanPaintBucketsRemaining : tanPaintBucketsRemaining;
+    if (gameState === 'won' || gameState === 'lost' || bucketsRemaining <= 0) return;
+
+    let currentBoard = JSON.parse(JSON.stringify(board)) as Cell[][];
+
+    // If first click, initialize the board first
+    if (isFirstClick.current) {
+      isFirstClick.current = false;
+      currentBoard = initializeMinesAndNeighbors(currentBoard, row, col);
+      setGameState('playing');
+    }
+
+    const adjacents = isDeluxe
+      ? getNeighbors5x5(row, col, config.rows, config.cols)
+      : getNeighbors(row, col, config.rows, config.cols);
+
+    for (const adj of adjacents) {
+      const neighbor = currentBoard[adj.r][adj.c];
+      // Only reveal if neighbor is unrevealed, unflagged, not a mine, and has exactly 5, 6, or 7 adjacent mines
+      if (!neighbor.isRevealed && !neighbor.isFlagged && !neighbor.isMine && (neighbor.neighborMines === 5 || neighbor.neighborMines === 6 || neighbor.neighborMines === 7)) {
+        neighbor.isRevealed = true;
+      }
+    }
+
+    if (checkWinCondition(currentBoard)) {
+      handleWin(currentBoard);
+    }
+
+    setBoard(currentBoard);
+    if (isDeluxe) {
+      setDeluxeTanPaintBucketsRemaining((p) => p - 1);
+    } else {
+      setTanPaintBucketsRemaining((p) => p - 1);
+    }
+  }, [board, gameState, tanPaintBucketsRemaining, deluxeTanPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin]);
 
 
 
@@ -623,16 +656,23 @@ export function useMinesweeper() {
     localStorage.removeItem('minesweeper_pro_unlocked');
     localStorage.removeItem('minesweeper_impossible_unlocked');
     localStorage.removeItem('minesweeper_peaceful_failed');
+    localStorage.removeItem('minesweeper_high_scores');
     setIsEasyUnlocked(false);
     setIsProUnlocked(false);
     setIsImpossibleUnlocked(false);
     setHasFailedPeaceful(false);
+    setHighScores({});
 
     // Reset difficulty if the active one is locked now
     if (config.name === 'Easy' || config.name === 'Easy Bomb Rally' || config.name === 'Pro' || config.name === 'Impossible') {
       resetGame(DIFFICULTIES.Peaceful);
     }
   }, [config, resetGame]);
+
+  const resetHighScores = useCallback(() => {
+    localStorage.removeItem('minesweeper_high_scores');
+    setHighScores({});
+  }, []);
 
   return {
     board,
@@ -653,9 +693,14 @@ export function useMinesweeper() {
     revealMagentaAdjacentCells,
     magentaPaintBucketsRemaining,
     deluxeMagentaPaintBucketsRemaining,
+    revealTanAdjacentCells,
+    tanPaintBucketsRemaining,
+    deluxeTanPaintBucketsRemaining,
     isImpossibleUnlocked,
     isProUnlocked,
     isEasyUnlocked,
     resetUnlocks,
+    highScores,
+    resetHighScores,
   };
 }

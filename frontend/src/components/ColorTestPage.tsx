@@ -206,6 +206,9 @@ export const ColorTestPage: React.FC = () => {
                   <span style={{ color: '#d946ef', background: 'rgba(217, 70, 239, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                     🟣 Magenta: {diff.magentaPaintBuckets === Infinity ? '∞' : diff.magentaPaintBuckets}
                   </span>
+                  <span style={{ color: '#d2b48c', background: 'rgba(210, 180, 140, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                    🟫 Tan: {diff.tanPaintBuckets === Infinity ? '∞' : diff.tanPaintBuckets}
+                  </span>
                 </div>
               </div>
             ))}

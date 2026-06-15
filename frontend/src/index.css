@@ -166,6 +166,21 @@ body {
   font-weight: 500;
 }
 
+.best-time-panel {
+  border-color: rgba(251, 191, 36, 0.2);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.05);
+}
+
+.best-time-panel .display-label {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+}
+
+.best-time-panel .display-value {
+  color: #fde68a;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+}
+
 /* Face Button */
 .face-button {
   background: radial-gradient(circle, #312e81 0%, #1e1b4b 100%);
@@ -658,6 +673,42 @@ body {
   }
 }
 
+/* Tan Paint specific styles */
+.tool-btn.tan-paint {
+  background: rgba(210, 180, 140, 0.15);
+  border: 1.5px solid rgba(210, 180, 140, 0.3);
+  color: #f5e0c3;
+  box-shadow: 0 4px 12px rgba(210, 180, 140, 0.05);
+}
+
+.tool-btn.tan-paint:hover:not(:disabled) {
+  background: rgba(210, 180, 140, 0.25);
+  border-color: rgba(210, 180, 140, 0.6);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(210, 180, 140, 0.25), 0 0 8px rgba(210, 180, 140, 0.15);
+}
+
+.tool-btn.tan-paint.active {
+  background: #d2b48c;
+  border-color: #f5e0c3;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(210, 180, 140, 0.65);
+  animation: pulse-tan 1.8s infinite;
+}
+
+@keyframes pulse-tan {
+  0% {
+    box-shadow: 0 0 0 0 rgba(210, 180, 140, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(210, 180, 140, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(210, 180, 140, 0);
+  }
+}
+
 /* Paint mode active grid styles */
 .board-grid.paint-mode-active .cell.unrevealed {
   cursor: crosshair;
@@ -683,6 +734,14 @@ body {
   background: rgba(217, 70, 239, 0.3) !important;
   border-color: #d946ef !important;
   box-shadow: 0 0 12px rgba(217, 70, 239, 0.7), inset 0 2px 4px rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.08);
+  z-index: 10;
+}
+
+.cell.unrevealed.paint-highlighted-tan {
+  background: rgba(210, 180, 140, 0.3) !important;
+  border-color: #d2b48c !important;
+  box-shadow: 0 0 12px rgba(210, 180, 140, 0.7), inset 0 2px 4px rgba(255, 255, 255, 0.2) !important;
   transform: scale(1.08);
   z-index: 10;
 }

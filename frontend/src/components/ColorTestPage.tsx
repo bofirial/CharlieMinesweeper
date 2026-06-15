@@ -200,11 +200,11 @@ export const ColorTestPage: React.FC = () => {
                   <span style={{ color: '#f43f5e', background: 'rgba(244, 63, 94, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                     🔴 Red: {diff.redPaintBuckets === Infinity ? '∞' : diff.redPaintBuckets}
                   </span>
-                  <span style={{ color: '#3b82f6', background: 'rgba(59, 130, 246, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                    🔵 Blue: {diff.bluePaintBuckets === Infinity ? '∞' : diff.bluePaintBuckets}
+                  <span style={{ color: '#14b8a6', background: 'rgba(20, 184, 166, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                    🌀 Teal: {diff.tealPaintBuckets === Infinity ? '∞' : diff.tealPaintBuckets}
                   </span>
-                  <span style={{ color: '#22c55e', background: 'rgba(34, 197, 94, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                    🟢 Green: {diff.greenPaintBuckets === Infinity ? '∞' : diff.greenPaintBuckets}
+                  <span style={{ color: '#d946ef', background: 'rgba(217, 70, 239, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                    🟣 Magenta: {diff.magentaPaintBuckets === Infinity ? '∞' : diff.magentaPaintBuckets}
                   </span>
                 </div>
               </div>

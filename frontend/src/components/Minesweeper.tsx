@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useMinesweeper } from '../hooks/useMinesweeper';
 import { Cell } from './Cell';
 import { DIFFICULTIES, type GameConfig } from '../types';
+import { FeedbackModal } from './FeedbackModal';
 
 export const Minesweeper: React.FC = () => {
   const {
@@ -16,9 +17,13 @@ export const Minesweeper: React.FC = () => {
     chordCell,
     paintFlags,
     paintBucketsRemaining,
+    deluxePaintBucketsRemaining,
     revealAdjacentCells,
-    bluePaintBucketsRemaining,
-    greenPaintBucketsRemaining,
+    tealPaintBucketsRemaining,
+    deluxeTealPaintBucketsRemaining,
+    revealMagentaAdjacentCells,
+    magentaPaintBucketsRemaining,
+    deluxeMagentaPaintBucketsRemaining,
     isImpossibleUnlocked,
     isProUnlocked,
     isEasyUnlocked,
@@ -26,8 +31,9 @@ export const Minesweeper: React.FC = () => {
   } = useMinesweeper();
 
   const [isGridMouseDown, setIsGridMouseDown] = useState(false);
-  const [activePaintMode, setActivePaintMode] = useState<'none' | 'red' | 'blue' | 'green'>('none');
+  const [activePaintMode, setActivePaintMode] = useState<'none' | 'red' | 'red-deluxe' | 'teal' | 'teal-deluxe' | 'magenta' | 'magenta-deluxe'>('none');
   const [hoveredCell, setHoveredCell] = useState<{ r: number; c: number } | null>(null);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   // Helper to pad numbers to 3 digits (e.g. 008, 099, -05)
   const formatNumber = (num: number): string => {
@@ -65,15 +71,27 @@ export const Minesweeper: React.FC = () => {
 
   const handleCellClick = (row: number, col: number) => {
     if (activePaintMode === 'red') {
-      paintFlags(row, col);
+      paintFlags(row, col, false);
       setActivePaintMode('none');
       setHoveredCell(null);
-    } else if (activePaintMode === 'blue') {
-      revealAdjacentCells(row, col, 1);
+    } else if (activePaintMode === 'red-deluxe') {
+      paintFlags(row, col, true);
       setActivePaintMode('none');
       setHoveredCell(null);
-    } else if (activePaintMode === 'green') {
-      revealAdjacentCells(row, col, 2);
+    } else if (activePaintMode === 'teal') {
+      revealAdjacentCells(row, col, false);
+      setActivePaintMode('none');
+      setHoveredCell(null);
+    } else if (activePaintMode === 'teal-deluxe') {
+      revealAdjacentCells(row, col, true);
+      setActivePaintMode('none');
+      setHoveredCell(null);
+    } else if (activePaintMode === 'magenta') {
+      revealMagentaAdjacentCells(row, col, false);
+      setActivePaintMode('none');
+      setHoveredCell(null);
+    } else if (activePaintMode === 'magenta-deluxe') {
+      revealMagentaAdjacentCells(row, col, true);
       setActivePaintMode('none');
       setHoveredCell(null);
     } else {
@@ -81,12 +99,34 @@ export const Minesweeper: React.FC = () => {
     }
   };
 
-  const isCellHighlighted = (r: number, c: number): 'none' | 'red' | 'blue' | 'green' => {
+  const isCellHighlighted = (r: number, c: number): 'none' | 'red' | 'teal' | 'magenta' | 'deluxe' => {
     if (activePaintMode === 'none' || !hoveredCell) return 'none';
     const { r: hr, c: hc } = hoveredCell;
-    const isNeighbor = Math.abs(r - hr) <= 1 && Math.abs(c - hc) <= 1;
+    
+    let isDeluxe = false;
+    let limit = 1;
+    let color: 'red' | 'teal' | 'magenta' = 'red';
+    
+    if (activePaintMode === 'red') {
+      limit = 1; color = 'red';
+    } else if (activePaintMode === 'red-deluxe') {
+      limit = 2; isDeluxe = true; color = 'red';
+    } else if (activePaintMode === 'teal') {
+      limit = 1; color = 'teal';
+    } else if (activePaintMode === 'teal-deluxe') {
+      limit = 2; isDeluxe = true; color = 'teal';
+    } else if (activePaintMode === 'magenta') {
+      limit = 1; color = 'magenta';
+    } else if (activePaintMode === 'magenta-deluxe') {
+      limit = 2; isDeluxe = true; color = 'magenta';
+    }
+    
+    const isNeighbor = Math.abs(r - hr) <= limit && Math.abs(c - hc) <= limit;
     const isSelf = r === hr && c === hc;
-    return isNeighbor && !isSelf ? activePaintMode : 'none';
+    if (isNeighbor && !isSelf) {
+      return isDeluxe ? 'deluxe' : color;
+    }
+    return 'none';
   };
 
   return (
@@ -97,7 +137,7 @@ export const Minesweeper: React.FC = () => {
 
       <div className="controls-container">
         {(Object.keys(DIFFICULTIES) as Array<Exclude<GameConfig['name'], 'Custom'>>).map((diff) => {
-          if (diff === 'Easy' && !isEasyUnlocked) return null;
+          if ((diff === 'Easy' || diff === 'Easy Bomb Rally') && !isEasyUnlocked) return null;
           if (diff === 'Impossible' && !isImpossibleUnlocked) return null;
           if (diff === 'Pro' && !isProUnlocked) return null;
           return (
@@ -117,6 +157,13 @@ export const Minesweeper: React.FC = () => {
         >
           Reset Unlocks
         </button>
+        <button
+          className="feedback-trigger-btn"
+          onClick={() => setIsFeedbackOpen(true)}
+          title="Provide feedback on the game features and colors"
+        >
+          ✍️ Feedback
+        </button>
       </div>
 
       <div className="tools-container">
@@ -130,7 +177,7 @@ export const Minesweeper: React.FC = () => {
               ? "Red Paint Bucket: Click a tile to start the game before using this tool"
               : paintBucketsRemaining <= 0
               ? "Red Paint Bucket: No uses remaining"
-              : `Red Paint Bucket: Flag all adjacent mines. (${formatPaintCount(paintBucketsRemaining)} remaining)`
+              : `Red Paint Bucket: Flag all adjacent mines in a 3x3 area. (${formatPaintCount(paintBucketsRemaining)} remaining)`
           }
         >
           <svg
@@ -152,17 +199,17 @@ export const Minesweeper: React.FC = () => {
           <span>Red Paint ({formatPaintCount(paintBucketsRemaining)})</span>
         </button>
 
-        {/* Blue Paint Bucket */}
+        {/* Deluxe Red Paint Bucket */}
         <button
-          className={`tool-btn paint-bucket-btn blue-paint ${activePaintMode === 'blue' ? 'active' : ''}`}
-          onClick={() => setActivePaintMode(activePaintMode === 'blue' ? 'none' : 'blue')}
-          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || bluePaintBucketsRemaining <= 0}
+          className={`tool-btn paint-bucket-btn red-paint deluxe ${activePaintMode === 'red-deluxe' ? 'active' : ''}`}
+          onClick={() => setActivePaintMode(activePaintMode === 'red-deluxe' ? 'none' : 'red-deluxe')}
+          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || deluxePaintBucketsRemaining <= 0}
           title={
             gameState === 'idle'
-              ? "Blue Paint Bucket: Click a tile to start the game before using this tool"
-              : bluePaintBucketsRemaining <= 0
-              ? "Blue Paint Bucket: No uses remaining"
-              : `Blue Paint Bucket: Reveal adjacent 1s. (${formatPaintCount(bluePaintBucketsRemaining)} remaining)`
+              ? "Deluxe Red Paint Bucket: Click a tile to start the game before using this tool"
+              : deluxePaintBucketsRemaining <= 0
+              ? "Deluxe Red Paint Bucket: No uses remaining"
+              : `Deluxe Red Paint Bucket: Flag all adjacent mines in a 5x5 area. (${formatPaintCount(deluxePaintBucketsRemaining)} remaining)`
           }
         >
           <svg
@@ -178,23 +225,23 @@ export const Minesweeper: React.FC = () => {
             className="paint-bucket-svg"
           >
             <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" />
-            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={bluePaintBucketsRemaining <= 0 ? "#475569" : "#3b82f6"} />
-            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={bluePaintBucketsRemaining <= 0 ? "#475569" : "#3b82f6"} />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={deluxePaintBucketsRemaining <= 0 ? "#475569" : "#fbbf24"} />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={deluxePaintBucketsRemaining <= 0 ? "#475569" : "#fbbf24"} />
           </svg>
-          <span>Blue Paint ({formatPaintCount(bluePaintBucketsRemaining)})</span>
+          <span>Deluxe Red Paint ({formatPaintCount(deluxePaintBucketsRemaining)})</span>
         </button>
 
-        {/* Green Paint Bucket */}
+        {/* Teal Paint Bucket */}
         <button
-          className={`tool-btn paint-bucket-btn green-paint ${activePaintMode === 'green' ? 'active' : ''}`}
-          onClick={() => setActivePaintMode(activePaintMode === 'green' ? 'none' : 'green')}
-          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || greenPaintBucketsRemaining <= 0}
+          className={`tool-btn paint-bucket-btn teal-paint ${activePaintMode === 'teal' ? 'active' : ''}`}
+          onClick={() => setActivePaintMode(activePaintMode === 'teal' ? 'none' : 'teal')}
+          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || tealPaintBucketsRemaining <= 0}
           title={
             gameState === 'idle'
-              ? "Green Paint Bucket: Click a tile to start the game before using this tool"
-              : greenPaintBucketsRemaining <= 0
-              ? "Green Paint Bucket: No uses remaining"
-              : `Green Paint Bucket: Reveal adjacent 2s. (${formatPaintCount(greenPaintBucketsRemaining)} remaining)`
+              ? "Teal Paint Bucket: Click a tile to start the game before using this tool"
+              : tealPaintBucketsRemaining <= 0
+              ? "Teal Paint Bucket: No uses remaining"
+              : `Teal Paint Bucket: Reveal adjacent 1s and 2s in a 3x3 area. (${formatPaintCount(tealPaintBucketsRemaining)} remaining)`
           }
         >
           <svg
@@ -210,10 +257,106 @@ export const Minesweeper: React.FC = () => {
             className="paint-bucket-svg"
           >
             <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" />
-            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={greenPaintBucketsRemaining <= 0 ? "#475569" : "#22c55e"} />
-            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={greenPaintBucketsRemaining <= 0 ? "#475569" : "#22c55e"} />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={tealPaintBucketsRemaining <= 0 ? "#475569" : "#14b8a6"} />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={tealPaintBucketsRemaining <= 0 ? "#475569" : "#14b8a6"} />
           </svg>
-          <span>Green Paint ({formatPaintCount(greenPaintBucketsRemaining)})</span>
+          <span>Teal Paint ({formatPaintCount(tealPaintBucketsRemaining)})</span>
+        </button>
+
+        {/* Deluxe Teal Paint Bucket */}
+        <button
+          className={`tool-btn paint-bucket-btn teal-paint deluxe ${activePaintMode === 'teal-deluxe' ? 'active' : ''}`}
+          onClick={() => setActivePaintMode(activePaintMode === 'teal-deluxe' ? 'none' : 'teal-deluxe')}
+          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || deluxeTealPaintBucketsRemaining <= 0}
+          title={
+            gameState === 'idle'
+              ? "Deluxe Teal Paint Bucket: Click a tile to start the game before using this tool"
+              : deluxeTealPaintBucketsRemaining <= 0
+              ? "Deluxe Teal Paint Bucket: No uses remaining"
+              : `Deluxe Teal Paint Bucket: Reveal adjacent 1s and 2s in a 5x5 area. (${formatPaintCount(deluxeTealPaintBucketsRemaining)} remaining)`
+          }
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="paint-bucket-svg"
+          >
+            <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={deluxeTealPaintBucketsRemaining <= 0 ? "#475569" : "#fbbf24"} />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={deluxeTealPaintBucketsRemaining <= 0 ? "#475569" : "#fbbf24"} />
+          </svg>
+          <span>Deluxe Teal Paint ({formatPaintCount(deluxeTealPaintBucketsRemaining)})</span>
+        </button>
+
+        {/* Magenta Paint Bucket */}
+        <button
+          className={`tool-btn paint-bucket-btn magenta-paint ${activePaintMode === 'magenta' ? 'active' : ''}`}
+          onClick={() => setActivePaintMode(activePaintMode === 'magenta' ? 'none' : 'magenta')}
+          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || magentaPaintBucketsRemaining <= 0}
+          title={
+            gameState === 'idle'
+              ? "Magenta Paint Bucket: Click a tile to start the game before using this tool"
+              : magentaPaintBucketsRemaining <= 0
+              ? "Magenta Paint Bucket: No uses remaining"
+              : `Magenta Paint Bucket: Reveal adjacent 3s and 4s in a 3x3 area. (${formatPaintCount(magentaPaintBucketsRemaining)} remaining)`
+          }
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="paint-bucket-svg"
+          >
+            <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={magentaPaintBucketsRemaining <= 0 ? "#475569" : "#d946ef"} />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={magentaPaintBucketsRemaining <= 0 ? "#475569" : "#d946ef"} />
+          </svg>
+          <span>Magenta Paint ({formatPaintCount(magentaPaintBucketsRemaining)})</span>
+        </button>
+
+        {/* Deluxe Magenta Paint Bucket */}
+        <button
+          className={`tool-btn paint-bucket-btn magenta-paint deluxe ${activePaintMode === 'magenta-deluxe' ? 'active' : ''}`}
+          onClick={() => setActivePaintMode(activePaintMode === 'magenta-deluxe' ? 'none' : 'magenta-deluxe')}
+          disabled={gameState === 'idle' || gameState === 'won' || gameState === 'lost' || deluxeMagentaPaintBucketsRemaining <= 0}
+          title={
+            gameState === 'idle'
+              ? "Deluxe Magenta Paint Bucket: Click a tile to start the game before using this tool"
+              : deluxeMagentaPaintBucketsRemaining <= 0
+              ? "Deluxe Magenta Paint Bucket: No uses remaining"
+              : `Deluxe Magenta Paint Bucket: Reveal adjacent 3s and 4s in a 5x5 area. (${formatPaintCount(deluxeMagentaPaintBucketsRemaining)} remaining)`
+          }
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="paint-bucket-svg"
+          >
+            <path d="M12 2a5 5 0 0 0-5 5v2h10V7a5 5 0 0 0-5-5z" />
+            <path d="M6 9h12l-1.5 11h-9L6 9z" fill={deluxeMagentaPaintBucketsRemaining <= 0 ? "#475569" : "#fbbf24"} />
+            <path d="M10 9v4a2 2 0 0 0 4 0V9" fill={deluxeMagentaPaintBucketsRemaining <= 0 ? "#475569" : "#fbbf24"} />
+          </svg>
+          <span>Deluxe Magenta Paint ({formatPaintCount(deluxeMagentaPaintBucketsRemaining)})</span>
         </button>
       </div>
 
@@ -288,9 +431,10 @@ export const Minesweeper: React.FC = () => {
           📱 <span>Tap</span> to reveal. <span>Long-Press</span> to flag. <span>Double-Tap</span> a revealed number to Chord.
         </div>
         <div>
-          🔴 <span>Red Paint</span> flags adjacent mines. 🔵 <span>Blue Paint</span> reveals adjacent 1s. 🟢 <span>Green Paint</span> reveals adjacent 2s (none reveals/flags the clicked tile itself).
+          🔴 <span>Red Paint</span> flags adjacent mines. 🌀 <span>Teal Paint</span> reveals adjacent 1s and 2s. 🟣 <span>Magenta Paint</span> reveals adjacent 3s and 4s (none reveals/flags the clicked tile itself).
         </div>
       </div>
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </div>
   );
 };

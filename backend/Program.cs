@@ -20,7 +20,7 @@ builder.Services.AddCors(options =>
 
 // Configure Storage Service based on Azure Connection String presence
 var connectionString = builder.Configuration.GetConnectionString("AzureStorage");
-if (string.IsNullOrEmpty(connectionString))
+if (string.IsNullOrEmpty(connectionString) || connectionString.StartsWith("YOUR_") || connectionString == "placeholder")
 {
     builder.Services.AddSingleton<IStorageService, LocalFileStorageService>();
 }

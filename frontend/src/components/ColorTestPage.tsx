@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const API_BASE_URL = import.meta.env.DEV ? 'http://localhost:5045' : '';
 import { Cell } from './Cell';
-import { DIFFICULTIES, type Cell as CellType } from '../types';
+import { DIFFICULTIES, type Cell as CellType, type HighScoreEntry } from '../types';
 
 interface FeedbackItem {
   id: string;
@@ -17,6 +17,7 @@ interface FeedbackItem {
 
 export const ColorTestPage: React.FC = () => {
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
+  const [highScores, setHighScores] = useState<Record<string, HighScoreEntry[]>>({});
 
   const fetchFeedbacks = async () => {
     try {
@@ -30,9 +31,22 @@ export const ColorTestPage: React.FC = () => {
     }
   };
 
+  const fetchHighScores = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/highscores`);
+      if (response.ok) {
+        const data = await response.json();
+        setHighScores(data);
+      }
+    } catch (e) {
+      console.error("Error loading high scores:", e);
+    }
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchFeedbacks();
+      fetchHighScores();
     }, 0);
     return () => clearTimeout(timer);
   }, []);
@@ -242,6 +256,14 @@ export const ColorTestPage: React.FC = () => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#64748b' }}>
                   <span>Size: {diff.rows} × {diff.cols} ({diff.rows * diff.cols} squares)</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#fbbf24', marginTop: '0.1rem' }}>
+                  <span>Best Record:</span>
+                  <span style={{ fontWeight: 600 }}>
+                    {highScores[diff.name] && highScores[diff.name].length > 0 
+                      ? `${highScores[diff.name][0].time}s (${highScores[diff.name][0].playerName})`
+                      : '---'}
+                  </span>
                 </div>
                 <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.8rem', marginTop: '0.2rem' }}>
                   <span style={{ color: '#f43f5e', background: 'rgba(244, 63, 94, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>

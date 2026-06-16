@@ -161,7 +161,10 @@ export function useMinesweeper() {
     setTanPaintBucketsRemaining(normalTan);
     setDeluxeTanPaintBucketsRemaining(deluxeTan);
     let normalRainbow = 0, deluxeRainbow = 0;
-    if (activeConfig.name === 'Peaceful' || activeConfig.name === 'Super Easy') {
+    if (activeConfig.rainbowPaintBuckets === Infinity) {
+      normalRainbow = Infinity;
+      deluxeRainbow = (activeConfig.name === 'Peaceful' || activeConfig.name === 'Super Easy') ? 0 : Infinity;
+    } else if (activeConfig.name === 'Peaceful' || activeConfig.name === 'Super Easy') {
       normalRainbow = activeConfig.rainbowPaintBuckets;
       deluxeRainbow = 0;
     } else {

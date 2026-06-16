@@ -160,11 +160,11 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     cols: 10,
     mines: 15,
     name: 'Choise',
-    redPaintBuckets: 5,
-    tealPaintBuckets: 5,
-    magentaPaintBuckets: 5,
-    tanPaintBuckets: 5,
-    rainbowPaintBuckets: 2,
+    redPaintBuckets: Infinity,
+    tealPaintBuckets: Infinity,
+    magentaPaintBuckets: Infinity,
+    tanPaintBuckets: Infinity,
+    rainbowPaintBuckets: Infinity,
   },
 };
 

@@ -575,7 +575,10 @@ export function useMinesweeper() {
     } else {
       setPaintBucketsRemaining((p) => p - 1);
     }
-  }, [board, gameState, paintBucketsRemaining, deluxePaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5]);
+    if (config.name === 'Chois') {
+      setTimer((t) => t + (isDeluxe ? 10 : 5));
+    }
+  }, [board, gameState, paintBucketsRemaining, deluxePaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, setTimer]);
 
   // Paint bucket revealing tool: reveals all adjacent unrevealed, unflagged tiles of (row, col)
   // that have exactly 1 or 2 adjacent mines.
@@ -615,7 +618,10 @@ export function useMinesweeper() {
     } else {
       setTealPaintBucketsRemaining((p) => p - 1);
     }
-  }, [board, gameState, tealPaintBucketsRemaining, deluxeTealPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin]);
+    if (config.name === 'Chois') {
+      setTimer((t) => t + (isDeluxe ? 10 : 5));
+    }
+  }, [board, gameState, tealPaintBucketsRemaining, deluxeTealPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin, setTimer]);
 
   // Paint bucket revealing tool: reveals all adjacent unrevealed, unflagged tiles of (row, col)
   // that have exactly 3 or 4 adjacent mines.
@@ -655,7 +661,10 @@ export function useMinesweeper() {
     } else {
       setMagentaPaintBucketsRemaining((p) => p - 1);
     }
-  }, [board, gameState, magentaPaintBucketsRemaining, deluxeMagentaPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin]);
+    if (config.name === 'Chois') {
+      setTimer((t) => t + (isDeluxe ? 10 : 5));
+    }
+  }, [board, gameState, magentaPaintBucketsRemaining, deluxeMagentaPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin, setTimer]);
 
   // Paint bucket revealing tool: reveals all adjacent unrevealed, unflagged tiles of (row, col)
   // that have exactly 5, 6, or 7 adjacent mines.
@@ -695,7 +704,10 @@ export function useMinesweeper() {
     } else {
       setTanPaintBucketsRemaining((p) => p - 1);
     }
-  }, [board, gameState, tanPaintBucketsRemaining, deluxeTanPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin]);
+    if (config.name === 'Chois') {
+      setTimer((t) => t + (isDeluxe ? 10 : 5));
+    }
+  }, [board, gameState, tanPaintBucketsRemaining, deluxeTanPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin, setTimer]);
 
   // Rainbow paint revealing tool: flags all adjacent mines and reveals all adjacent safe cells in a 3x3 (normal) or 5x5 (deluxe) area safely
   const revealRainbowAdjacentCells = useCallback((row: number, col: number, isDeluxe: boolean) => {
@@ -752,7 +764,10 @@ export function useMinesweeper() {
     } else {
       setRainbowPaintBucketsRemaining((p) => p - 1);
     }
-  }, [board, gameState, rainbowPaintBucketsRemaining, deluxeRainbowPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, revealEmptyCells, checkWinCondition, handleWin, setFlagCount]);
+    if (config.name === 'Chois') {
+      setTimer((t) => t + (isDeluxe ? 10 : 5));
+    }
+  }, [board, gameState, rainbowPaintBucketsRemaining, deluxeRainbowPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, revealEmptyCells, checkWinCondition, handleWin, setFlagCount, setTimer]);
 
 
 

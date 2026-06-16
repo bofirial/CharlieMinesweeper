@@ -14,7 +14,7 @@ export interface GameConfig {
   rows: number;
   cols: number;
   mines: number;
-  name: 'Peaceful' | 'Super Easy' | 'Easy' | 'Easy Bomb Rally' | 'Beginner' | 'Bomb Rally' | 'Intermediate' | 'Medium Bomb Rally' | 'Expert' | 'Pro' | 'Master' | 'Impossible' | 'Chois' | 'Custom';
+  name: 'Peaceful' | 'Super Easy' | 'Easy' | 'Easy Bomb Rally' | 'Beginner' | 'Bomb Rally' | 'Intermediate' | 'Medium Bomb Rally' | 'Expert' | 'Pro' | 'Master' | 'Impossible' | 'Choise' | 'Custom';
   redPaintBuckets: number;
   tealPaintBuckets: number;
   magentaPaintBuckets: number;
@@ -155,11 +155,11 @@ export const DIFFICULTIES: Record<Exclude<GameConfig['name'], 'Custom'>, GameCon
     tanPaintBuckets: 0,
     rainbowPaintBuckets: 1,
   },
-  Chois: {
+  Choise: {
     rows: 10,
     cols: 10,
     mines: 15,
-    name: 'Chois',
+    name: 'Choise',
     redPaintBuckets: 5,
     tealPaintBuckets: 5,
     magentaPaintBuckets: 5,

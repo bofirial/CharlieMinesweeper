@@ -575,7 +575,7 @@ export function useMinesweeper() {
     } else {
       setPaintBucketsRemaining((p) => p - 1);
     }
-    if (config.name === 'Chois') {
+    if (config.name === 'Choise') {
       setTimer((t) => t + (isDeluxe ? 10 : 5));
     }
   }, [board, gameState, paintBucketsRemaining, deluxePaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, setTimer]);
@@ -618,7 +618,7 @@ export function useMinesweeper() {
     } else {
       setTealPaintBucketsRemaining((p) => p - 1);
     }
-    if (config.name === 'Chois') {
+    if (config.name === 'Choise') {
       setTimer((t) => t + (isDeluxe ? 10 : 5));
     }
   }, [board, gameState, tealPaintBucketsRemaining, deluxeTealPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin, setTimer]);
@@ -661,7 +661,7 @@ export function useMinesweeper() {
     } else {
       setMagentaPaintBucketsRemaining((p) => p - 1);
     }
-    if (config.name === 'Chois') {
+    if (config.name === 'Choise') {
       setTimer((t) => t + (isDeluxe ? 10 : 5));
     }
   }, [board, gameState, magentaPaintBucketsRemaining, deluxeMagentaPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin, setTimer]);
@@ -704,7 +704,7 @@ export function useMinesweeper() {
     } else {
       setTanPaintBucketsRemaining((p) => p - 1);
     }
-    if (config.name === 'Chois') {
+    if (config.name === 'Choise') {
       setTimer((t) => t + (isDeluxe ? 10 : 5));
     }
   }, [board, gameState, tanPaintBucketsRemaining, deluxeTanPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, checkWinCondition, handleWin, setTimer]);
@@ -764,7 +764,7 @@ export function useMinesweeper() {
     } else {
       setRainbowPaintBucketsRemaining((p) => p - 1);
     }
-    if (config.name === 'Chois') {
+    if (config.name === 'Choise') {
       setTimer((t) => t + (isDeluxe ? 10 : 5));
     }
   }, [board, gameState, rainbowPaintBucketsRemaining, deluxeRainbowPaintBucketsRemaining, config, initializeMinesAndNeighbors, getNeighbors, getNeighbors5x5, revealEmptyCells, checkWinCondition, handleWin, setFlagCount, setTimer]);
